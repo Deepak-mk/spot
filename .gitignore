@@ -1,0 +1,24 @@
+# Security
+.env
+.env.local
+secrets.json
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+build/
+dist/
+*.egg-info/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Application
+*.log
+traces/

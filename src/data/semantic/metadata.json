@@ -1,0 +1,246 @@
+{
+    "schema_version": "1.0",
+    "description": "Semantic metadata for the Agentic Analytics Platform sales and forecast dataset",
+    "last_updated": "2024-12-29",
+    "tables": {
+        "fact_sales_forecast": {
+            "description": "Central fact table containing sales transactions and forecast data. Each row represents a sale event with actual and predicted values.",
+            "primary_key": "sale_id",
+            "grain": "One row per sale transaction per day per product per store",
+            "columns": {
+                "sale_id": {
+                    "type": "INTEGER",
+                    "description": "Unique identifier for each sales record",
+                    "business_name": "Sale ID"
+                },
+                "date_id": {
+                    "type": "INTEGER",
+                    "description": "Foreign key to dim_date, indicates when the sale occurred",
+                    "business_name": "Date",
+                    "foreign_key": "dim_date.date_id"
+                },
+                "product_id": {
+                    "type": "INTEGER",
+                    "description": "Foreign key to dim_product, indicates which product was sold",
+                    "business_name": "Product",
+                    "foreign_key": "dim_product.product_id"
+                },
+                "store_id": {
+                    "type": "INTEGER",
+                    "description": "Foreign key to dim_store, indicates where the sale occurred",
+                    "business_name": "Store Location",
+                    "foreign_key": "dim_store.store_id"
+                },
+                "actual_sales": {
+                    "type": "NUMERIC",
+                    "description": "Actual sales amount in USD for this transaction",
+                    "business_name": "Actual Sales",
+                    "format": "currency",
+                    "aggregation": "SUM"
+                },
+                "forecast_sales": {
+                    "type": "NUMERIC",
+                    "description": "ML-predicted sales amount for this transaction",
+                    "business_name": "Forecasted Sales",
+                    "format": "currency",
+                    "aggregation": "SUM"
+                },
+                "forecast_lower_bound": {
+                    "type": "NUMERIC",
+                    "description": "Lower bound of forecast confidence interval (85%)",
+                    "business_name": "Forecast Lower Bound",
+                    "format": "currency"
+                },
+                "forecast_upper_bound": {
+                    "type": "NUMERIC",
+                    "description": "Upper bound of forecast confidence interval (85%)",
+                    "business_name": "Forecast Upper Bound",
+                    "format": "currency"
+                },
+                "units_sold": {
+                    "type": "INTEGER",
+                    "description": "Number of units sold in this transaction",
+                    "business_name": "Units Sold",
+                    "aggregation": "SUM"
+                },
+                "revenue": {
+                    "type": "NUMERIC",
+                    "description": "Total revenue from the sale (same as actual_sales)",
+                    "business_name": "Revenue",
+                    "format": "currency",
+                    "aggregation": "SUM"
+                },
+                "cost": {
+                    "type": "NUMERIC",
+                    "description": "Cost of goods sold (COGS) for this transaction",
+                    "business_name": "Cost",
+                    "format": "currency",
+                    "aggregation": "SUM"
+                }
+            }
+        },
+        "dim_date": {
+            "description": "Date dimension table for time-based analysis. Contains calendar attributes for each day of 2024.",
+            "primary_key": "date_id",
+            "columns": {
+                "date_id": {
+                    "type": "INTEGER",
+                    "description": "Unique identifier for the date (day of year 1-366)",
+                    "business_name": "Date ID"
+                },
+                "calendar_date": {
+                    "type": "DATE",
+                    "description": "Full calendar date in YYYY-MM-DD format",
+                    "business_name": "Date"
+                },
+                "year": {
+                    "type": "INTEGER",
+                    "description": "Calendar year",
+                    "business_name": "Year"
+                },
+                "quarter": {
+                    "type": "STRING",
+                    "description": "Calendar quarter (Q1, Q2, Q3, Q4)",
+                    "business_name": "Quarter"
+                },
+                "month": {
+                    "type": "STRING",
+                    "description": "Month name (January, February, etc.)",
+                    "business_name": "Month"
+                },
+                "fiscal_period": {
+                    "type": "STRING",
+                    "description": "Fiscal period designation (e.g., FY24-Q1)",
+                    "business_name": "Fiscal Period"
+                }
+            }
+        },
+        "dim_product": {
+            "description": "Product dimension containing product catalog information.",
+            "primary_key": "product_id",
+            "columns": {
+                "product_id": {
+                    "type": "INTEGER",
+                    "description": "Unique identifier for each product",
+                    "business_name": "Product ID"
+                },
+                "product_name": {
+                    "type": "STRING",
+                    "description": "Full product name/description",
+                    "business_name": "Product Name"
+                },
+                "category": {
+                    "type": "STRING",
+                    "description": "Product category (Electronics, Accessories, Audio, Storage, Wearables)",
+                    "business_name": "Category"
+                },
+                "brand": {
+                    "type": "STRING",
+                    "description": "Product brand name",
+                    "business_name": "Brand"
+                }
+            }
+        },
+        "dim_store": {
+            "description": "Store dimension containing retail location information.",
+            "primary_key": "store_id",
+            "columns": {
+                "store_id": {
+                    "type": "INTEGER",
+                    "description": "Unique identifier for each store",
+                    "business_name": "Store ID"
+                },
+                "store_name": {
+                    "type": "STRING",
+                    "description": "Store name/location name",
+                    "business_name": "Store Name"
+                },
+                "region": {
+                    "type": "STRING",
+                    "description": "Geographic region (North America, Europe, Asia Pacific)",
+                    "business_name": "Region"
+                },
+                "country": {
+                    "type": "STRING",
+                    "description": "Country where the store is located",
+                    "business_name": "Country"
+                }
+            }
+        }
+    },
+    "metrics": {
+        "total_revenue": {
+            "description": "Sum of all revenue across transactions",
+            "formula": "SUM(revenue)",
+            "format": "currency"
+        },
+        "total_actual_sales": {
+            "description": "Sum of actual sales amounts",
+            "formula": "SUM(actual_sales)",
+            "format": "currency"
+        },
+        "total_forecast_sales": {
+            "description": "Sum of forecasted sales amounts",
+            "formula": "SUM(forecast_sales)",
+            "format": "currency"
+        },
+        "forecast_accuracy": {
+            "description": "Percentage accuracy of forecast vs actual. 100% means perfect prediction.",
+            "formula": "1 - ABS(SUM(actual_sales) - SUM(forecast_sales)) / SUM(actual_sales)",
+            "format": "percentage"
+        },
+        "gross_profit": {
+            "description": "Revenue minus cost of goods sold",
+            "formula": "SUM(revenue) - SUM(cost)",
+            "format": "currency"
+        },
+        "gross_margin": {
+            "description": "Gross profit as percentage of revenue",
+            "formula": "(SUM(revenue) - SUM(cost)) / SUM(revenue)",
+            "format": "percentage"
+        },
+        "average_order_value": {
+            "description": "Average revenue per transaction",
+            "formula": "SUM(revenue) / COUNT(sale_id)",
+            "format": "currency"
+        },
+        "total_units_sold": {
+            "description": "Total number of units sold",
+            "formula": "SUM(units_sold)",
+            "format": "number"
+        }
+    },
+    "relationships": [
+        {
+            "from_table": "fact_sales_forecast",
+            "from_column": "date_id",
+            "to_table": "dim_date",
+            "to_column": "date_id",
+            "type": "many-to-one"
+        },
+        {
+            "from_table": "fact_sales_forecast",
+            "from_column": "product_id",
+            "to_table": "dim_product",
+            "to_column": "product_id",
+            "type": "many-to-one"
+        },
+        {
+            "from_table": "fact_sales_forecast",
+            "from_column": "store_id",
+            "to_table": "dim_store",
+            "to_column": "store_id",
+            "type": "many-to-one"
+        }
+    ],
+    "sample_queries": [
+        "What is the total revenue by region?",
+        "Show me actual vs forecast sales by quarter",
+        "Which products have the highest gross margin?",
+        "Compare sales performance across stores",
+        "What is the forecast accuracy by product category?",
+        "Show monthly revenue trends",
+        "Which brand generates the most revenue?",
+        "What is the average order value by store?"
+    ]
+}

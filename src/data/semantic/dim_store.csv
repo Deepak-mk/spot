@@ -1,0 +1,11 @@
+store_id,store_name,region,country
+1,Downtown Flagship,North America,USA
+2,Mall of America,North America,USA
+3,Silicon Valley Tech Hub,North America,USA
+4,Toronto Central,North America,Canada
+5,London Oxford Street,Europe,UK
+6,Paris Champs-Élysées,Europe,France
+7,Berlin Alexanderplatz,Europe,Germany
+8,Tokyo Shibuya,Asia Pacific,Japan
+9,Singapore Marina Bay,Asia Pacific,Singapore
+10,Sydney CBD,Asia Pacific,Australia

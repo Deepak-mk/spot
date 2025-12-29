@@ -1,0 +1,21 @@
+product_id,product_name,category,brand
+1,Laptop Pro 15,Electronics,TechCorp
+2,Laptop Air 13,Electronics,TechCorp
+3,Desktop Workstation,Electronics,TechCorp
+4,Wireless Mouse,Accessories,TechCorp
+5,Mechanical Keyboard,Accessories,TechCorp
+6,4K Monitor 27 inch,Electronics,ViewMax
+7,Curved Monitor 32 inch,Electronics,ViewMax
+8,USB-C Hub,Accessories,ConnectPro
+9,Webcam HD,Accessories,ViewMax
+10,Noise Cancelling Headphones,Audio,SoundWave
+11,Wireless Earbuds,Audio,SoundWave
+12,Bluetooth Speaker,Audio,SoundWave
+13,External SSD 1TB,Storage,DataVault
+14,External HDD 2TB,Storage,DataVault
+15,USB Flash Drive 128GB,Storage,DataVault
+16,Tablet Pro 11,Electronics,TechCorp
+17,Smartphone X12,Electronics,MobileFirst
+18,Smartwatch Series 5,Wearables,MobileFirst
+19,Fitness Tracker,Wearables,FitLife
+20,Portable Charger 20000mAh,Accessories,PowerUp
