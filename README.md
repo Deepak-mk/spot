@@ -90,4 +90,4 @@ See `.github/workflows/ci.yml` for details.
 
 ---
 
-> Built with ❤️ by Antigravity
+> Built with ❤️ by Deepak MK
