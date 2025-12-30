@@ -59,6 +59,10 @@ class PolicyConfig:
     enable_cost_limits: bool = True
     max_cost_per_request_usd: float = 0.10
     max_cost_per_day_usd: float = 10.00
+    blocked_topics: List[str] = field(default_factory=lambda: [
+        "politics", "religion", "hate speech", "medical advice", "legal advice"
+    ])
+    enable_content_guardrails: bool = True
     
     @classmethod
     def from_file(cls, path: str) -> "PolicyConfig":
@@ -80,6 +84,8 @@ class PolicyConfig:
             "enable_cost_limits": self.enable_cost_limits,
             "max_cost_per_request_usd": self.max_cost_per_request_usd,
             "max_cost_per_day_usd": self.max_cost_per_day_usd,
+            "blocked_topics": self.blocked_topics,
+            "enable_content_guardrails": self.enable_content_guardrails,
         }
 
 
@@ -629,6 +635,22 @@ class ControlPlane:
         except Exception:
             pass
     
+    def validate_content(self, text: str) -> tuple[bool, Optional[str]]:
+        """
+        Validate text content against policy guardrails.
+        Currently implements keyword matching. Future: Integrate NeMo Guardrails.
+        """
+        if not self._policy.enable_content_guardrails:
+            return True, None
+            
+        # Basic keyword check (The "Level 1" Content Guardrail)
+        text_lower = text.lower()
+        for topic in self._policy.blocked_topics:
+            if topic in text_lower:
+                return False, f"Content blocked: violates '{topic}' policy."
+                
+        return True, None
+
     def validate_request(self, query: str, trace_id: Optional[str] = None) -> tuple[bool, Optional[str]]:
         """
         Full validation of an incoming request.
@@ -641,11 +663,17 @@ class ControlPlane:
         if not can_proceed:
             return False, reason
         
-        # Validate query content
-        valid, error = self._permission_checker.validate_query(query)
-        if not valid:
-            self._log_policy_check(trace_id, "query_validation", False, error)
-            return False, error
+        # Validate query permission (SQL injection patterns)
+        valid_perm, perm_error = self._permission_checker.validate_query(query)
+        if not valid_perm:
+            self._log_policy_check(trace_id, "query_permission", False, perm_error)
+            return False, perm_error
+            
+        # Validate query content (Topic/Guardrails)
+        valid_content, content_error = self.validate_content(query)
+        if not valid_content:
+            self._log_policy_check(trace_id, "content_guardrail", False, content_error)
+            return False, content_error
         
         return True, None
     
