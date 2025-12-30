@@ -11,8 +11,9 @@
 3.  **The Engine (RAG)**: Vector Math & Indexing Strategy.
 4.  **The Mind (Runtime)**: ReAct Loop, Memory & Feedback Loop.
 5.  **The Joystick (Governance)**: Control Plane & Boundaries.
-6.  **War Stories**: Failures, Hallucinations, & Fixes.
-7.  **The Interface**: Visualization Principles & Observability.
+6.  **Defense in Depth (Guardrails)**: Operational vs Content Safety.
+7.  **War Stories**: Failures, Hallucinations, & Fixes.
+8.  **The Interface**: Visualization Principles & Observability.
 
 ---
 
@@ -120,7 +121,26 @@ We set hard boundaries to ensure the agent operates strictly within safe limits:
 
 ---
 
-## 6. ⚔️ War Stories: Failures & Fixes (Post-Mortem)
+## 6. Defense in Depth: Guardrails
+
+We implement a multi-layered security strategy to ensure the agent is safe for enterprise use.
+
+### 6.1. Layer 1: Operational Guardrails (The "Brakes")
+*   **Kill Switch**: Physical thread lock that halts execution immediately.
+*   **Budget Circuit Breaker**: Auto-kill if daily cost > $10.00.
+*   **Rate Limiting**: Max 60 requests/minute to prevent DoS.
+
+### 6.2. Layer 2: Content Guardrails (The "Filter")
+*   **Topic Blocking**: `PolicyConfig.blocked_topics` enforces a deny-list (e.g., "politics", "religion") using efficient regex matching.
+*   **Input Validation**: `PermissionChecker` scans for malicious SQL patterns (`DROP`, `DELETE`) before execution.
+*   **Output Validation**: *Future*: Integrate NVIDIA NeMo Guardrails for semantic output checking.
+
+### 6.3. Layer 3: Semantic Guardrails (The "Truth")
+*   **Schema Abstraction**: The LLM never sees the raw schema, only the `SemanticLayer` definitions, preventing "Hallucinated Joins".
+
+---
+
+## 7. ⚔️ War Stories: Failures & Fixes (Post-Mortem)
 
 This is the most critical section. Building agents is 10% coding and 90% debugging edge cases.
 
@@ -152,7 +172,7 @@ This is the most critical section. Building agents is 10% coding and 90% debuggi
 
 ---
 
-## 7. The Interface: Observability & UX
+## 8. The Interface: Observability & UX
 
 ### 7.1. Deep Observability
 We moved beyond "logs" to "Telemetry".
@@ -170,7 +190,7 @@ We moved beyond "logs" to "Telemetry".
 
 ---
 
-## 8. Future Roadmap
+## 9. Future Roadmap
 *   **LLM Agnosticism**: Abstract `GroqClient` to specific interfaces (OpenAI, Anthropic).
 *   **Enterprise Semantic Layer**: Native integration with dbt Semantic Layer.
 *   **Active Learning**: Automated regression testing on feedback examples.
