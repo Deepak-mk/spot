@@ -1,0 +1,20 @@
+
+---
+
+## 🛠 Choosing an Index
+
+| Type | Use |
+|------|-----|
+| IndexFlatL2 | Exact, small dataset |
+| IVFPQ | Billions of vectors |
+| HNSWFlat | Good balance |
+| GPU IndexFlat | Real-time AI search |
+
+---
+
+## ⚙ Performance Tuning
+
+```python
+index.nprobe = 16    # higher = accuracy↑, speed↓
+m (PQ size)          # lower m = fast but less accurate
+nlist (clusters)     # increase to reduce cluster size

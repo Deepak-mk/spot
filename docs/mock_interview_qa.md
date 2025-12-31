@@ -61,6 +61,27 @@
 
 ---
 
+## 🔵 Round 5: The "Bar Raiser" (Advanced Strategy)
+
+**Q: "How do you structure an AI Engineering organization?"**
+*   **Answer**: "I prefer the **'Embedded Squad'** model over a centralized 'AI Lab'.
+    *   *Why*: Centralized labs build cool demos that never ship.
+    *   *My Approach*: I embed AI Engineers directly into product squads (e.g., the 'Search Squad', the 'Dashboard Squad').
+    *   *Platform Team*: I keep a small central 'AI Platform' team (like the one that would build the `ControlPlane` and `AgentRuntime` I prototyped) to build shared tooling/infrastructure for the squads."
+
+**Q: "Build vs Buy: Should we train our own LLM?"**
+*   **Answer**: "No. Not for general reasoning.
+    *   *Strategy*: We 'Buy' intelligence (Llama 3, GPT-4) via API for reasoning.
+    *   *We Build*: The Context Engine (Semantic Layer) and the Guardrails.
+    *   *Exception*: We only fine-tune small models (7B) for specific tasks like 'Text-to-TML' conversion if latency/cost becomes a blocker, but we don't train from scratch."
+
+**Q: "Why will Spotter win against Microsoft Copilot?"**
+*   **Answer**: "**Ground Truth**.
+    *   Microsoft Copilot is trained on the open internet (Excel files, loose text). It guesses.
+    *   Spotter is built on TML (The Semantic Layer). We don't guess; we *retrieve*. My prototype proved that binding LLMs to a strict Semantic Layer is the only way to get 100% SQL accuracy. Enterprises buy Trust, not just Chat."
+
+---
+
 ## ⚡ Bonus: Questions YOU Ask Them
 
 1.  "I implemented a `ControlPlane` to handle Budget and Kill Switches. Does Spotter have a similar centralized governance layer, or is it distributed across services?"
