@@ -1,5 +1,5 @@
 # 🚀 Agentic Analytics Platform: A Technical Deep Dive
-> **Author**: System Architect (Antigravity)
+> **Author**: Deepak MK
 > **Date**: December 2025
 > **Format**: Technical Presentation / Whitepaper
 
