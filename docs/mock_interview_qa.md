@@ -15,7 +15,38 @@
 
 ---
 
-## 🟡 Round 2: Technical Deep Dive (System Design)
+## 🟡 Round 2: Backend Engineering & System Design (Priority #1)
+
+**Q: "Design the backend for a high-concurrency Analytics API."**
+*   **Key Concepts**: AsyncIO (FastAPI), Caching (Redis), Queueing (Celery/Kafka).
+*   **Your "Spot" Answer**: "In 'Spot', I kept the runtime stateless so it can scale horizontally.
+    *   *API Layer*: I'd use **FastAPI** with `async/await` to handle thousands of concurrent SSE (Server-Sent Events) streams for chat.
+    *   *State*: I'd offload conversation history to **Redis** (Semantic Cache) to reduce DB hits.
+    *   *Worker*: Heavy SQL generation happens on background workers (Celery) to keep the API non-blocking."
+
+**Q: "How does Python's GIL affect your Agent architecture?"**
+*   **Answer**: "The Global Interpreter Lock prevents true parallelism in threads.
+    *   *Impact*: Since LLM calls are I/O bound (network latency), standard `threading` is fine.
+    *   *Bottleneck*: If we do heavy dataframe processing (CPU bound) in the main thread, the API will choke.
+    *   *Solution*: I run Dataframe operations (Pandas/Polars) in a separate **ProcessPool** or microservice to bypass the GIL."
+
+**Q: "Database Isolation Levels: Why do they matter for an Analyst Agent?"**
+*   **Answer**: "If an Agent runs a long analytical query (`READ COMMITTED`) while a transaction updates records, we might get inconsistent aggregates (Phantom Reads).
+    *   *Spot Implementation*: For the Agent, I enforce `READ UNCOMMITTED` (Snapshot) where possible for speed, or `REPEATABLE READ` if accuracy is paramount, ensuring the 'Answer' matches the 'Data' seen at start of query."
+
+---
+
+## 🟠 Round 3: People Management & Organization (Priority #2)
+
+**Q: "Your roadmap shows hiring 5 engineers. Who do you hire first?"**
+*   **Answer**: "I hire a **Senior Backend/Platform Engineer** first, not an AI Researcher. Why? Because the model (Llama/GPT) is a commodity. The competitive moat is the **Infrastructure** (The Control Plane, The Context Engine, The Guardrails). I need strong engineers to build the 'Joystick' reliability features I prototyped in `control_plane.py`."
+
+**Q: "How do you manage Technical Debt?"**
+*   **Answer**: "I follow the **20% Tax** rule. Every sprint creates debt. In my roadmap, I allocated Q2 specifically for 'Observability & Refactoring'. For example, my prototype uses `pandas` for everything. Tech debt repayment means migrating that to `Polars` or `DuckDB` for performance before we hit scale limits."
+
+---
+
+## 🟣 Round 4: Agentic AI Strategy (The Differentiator)
 
 **Q: "Hallucinations are the biggest risk. How do you stop them?"**
 *   **Your "Spot" Evidence**:
@@ -33,18 +64,10 @@
 *   **Your "Spot" Evidence**:
     *   "Currently, my `ControlPlane` is global. To handle multi-tenancy, I would inject a `tenant_id` into every `MetadataChunk` and `VectorSearch` filter. The `PermissionChecker` would then enforce `WHERE tenant_id = X` on every SQL query generated, essentially Row-Level Security (RLS) at the prompt level."
 
----
-
-## 🔴 Round 3: Leadership & Strategy (The "Director" Level)
-
-**Q: "Your roadmap shows hiring 5 engineers. Who do you hire first?"**
-*   **Answer**: "I hire a **Senior Backend/Platform Engineer** first, not an AI Researcher. Why? Because the model (Llama/GPT) is a commodity. The competitive moat is the **Infrastructure** (The Control Plane, The Context Engine, The Guardrails). I need strong engineers to build the 'Joystick' reliability features I prototyped in `control_plane.py`."
-
 **Q: "A Product Manager wants to ship a 'Beta' that hallucinates 20% of the time. What do you do?"**
 *   **Answer**: "I block it. As Director, I own **Trust**. If we ship 80% accuracy, we lose the user forever.
     *   *Action*: I would implement the **Evaluation Harness** (like the `tests/run_suite.py` I built) and set a hard gate: 'We do not ship until Functional Accuracy > 95% on the Golden Test Suite'. I would offer to scope-cut features to hit that quality bar, but I won't compromise on Trust."
 
-**Q: "How do you manage Technical Debt?"**
 *   **Answer**: "I follow the **20% Tax** rule. Every sprint creates debt. In my roadmap, I allocated Q2 specifically for 'Observability & Refactoring'. For example, my prototype uses `pandas` for everything. Tech debt repayment means migrating that to `Polars` or `DuckDB` for performance before we hit scale limits."
 
 ---
