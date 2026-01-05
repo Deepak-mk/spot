@@ -330,6 +330,18 @@ def render_observability_panel():
              
         # Progress bar for budget
         st.progress(min(cost_usage / 100, 1.0), text=f"Budget Usage: {cost_usage:.1f}%")
+
+        # Emergency Controls
+        if is_active:
+             if st.button("✅ RESTORE SYSTEM", key="obs_restore", use_container_width=True):
+                 cp.kill_switch.disable("observability_panel")
+                 add_log("warning", "System Restored via Panel")
+                 st.rerun()
+        else:
+             if st.button("🛑 EMERGENCY STOP", key="obs_kill", use_container_width=True):
+                 cp.kill_switch.enable("Manual Override", "observability_panel")
+                 add_log("error", "Kill Switch Triggered via Panel")
+                 st.rerun()
         
     except Exception as e:
         st.error(f"Control Plane Error: {e}")
