@@ -59,6 +59,16 @@ class GroqClient:
     
     def __init__(self, api_key: Optional[str] = None, model: str = "llama-3.1-8b"):
         self._api_key = api_key or os.getenv("GROQ_API_KEY")
+        
+        # Streamlit Cloud Secrets Fallback
+        if not self._api_key:
+            try:
+                import streamlit as st
+                if "GROQ_API_KEY" in st.secrets:
+                   self._api_key = st.secrets["GROQ_API_KEY"]
+            except ImportError:
+                pass
+        
         self._model = self.MODELS.get(model, model)
         self._telemetry = get_telemetry()
     
