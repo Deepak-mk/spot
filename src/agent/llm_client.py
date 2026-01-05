@@ -71,6 +71,13 @@ class GroqClient:
         
         self._model = self.MODELS.get(model, model)
         self._telemetry = get_telemetry()
+
+        # Debug Logging for Deployment
+        if self._api_key:
+            safe_key = f"{self._api_key[:4]}...{self._api_key[-4:]}" if len(self._api_key) > 8 else "INVALID_LEN"
+            print(f"DEBUG: Initialized GroqClient with Key: {safe_key}")
+        else:
+            print("DEBUG: GroqClient has NO API KEY set")
     
     def is_configured(self) -> bool:
         """Check if API key is configured."""
