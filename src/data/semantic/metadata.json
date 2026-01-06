@@ -157,7 +157,7 @@
                 },
                 "store_name": {
                     "type": "STRING",
-                    "description": "Store name/location name",
+                    "description": "Specific store name or city location (e.g. Toronto Central, Downtown Flagship)",
                     "business_name": "Store Name",
                     "sample_values": [
                         "Toronto Central",
@@ -167,7 +167,7 @@
                 },
                 "region": {
                     "type": "STRING",
-                    "description": "Geographic region (North America, Europe, Asia Pacific)",
+                    "description": "Broad geographic continent/area (e.g. North America, Europe, Asia Pacific). NOT for cities.",
                     "business_name": "Region"
                 },
                 "country": {

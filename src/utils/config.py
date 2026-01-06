@@ -12,7 +12,7 @@ from pathlib import Path
 @dataclass
 class LLMConfig:
     """LLM-related configuration."""
-    model_name: str = "gpt-3.5-turbo"
+    model_name: str = "llama-3.1-8b"
     max_tokens_per_request: int = 4096
     max_completion_tokens: int = 1024
     temperature: float = 0.1
