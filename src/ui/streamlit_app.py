@@ -26,6 +26,7 @@ from src.observability.telemetry import get_telemetry
 from src.observability.tracing import get_tracer
 from src.observability.latency import get_latency_tracker
 from src.observability.cost import get_cost_tracker
+from src.ui.auth import check_password, logout
 
 
 # Page config
@@ -35,6 +36,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Authentication Check
+if not check_password():
+    st.stop()
 
 # Custom CSS
 st.markdown("""
