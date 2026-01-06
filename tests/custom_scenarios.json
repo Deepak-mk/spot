@@ -1,0 +1,51 @@
+[
+    {
+        "query": "How many Wireless Mouse units were sold in Toronto Central?",
+        "expected_keywords": [
+            "SUM",
+            "units_sold",
+            "Wireless Mouse",
+            "Toronto Central"
+        ],
+        "category": "Granular Filter"
+    },
+    {
+        "query": "What is the total revenue for TechCorp products?",
+        "expected_keywords": [
+            "SUM",
+            "revenue",
+            "TechCorp"
+        ],
+        "category": "Brand Aggregation"
+    },
+    {
+        "query": "Compare revenue between USA and Canada",
+        "expected_keywords": [
+            "SUM",
+            "revenue",
+            "country",
+            "GROUP BY"
+        ],
+        "category": "Cross-Region"
+    },
+    {
+        "query": "Which product has the highest profit margin?",
+        "expected_keywords": [
+            "revenue",
+            "cost",
+            "ORDER BY",
+            "LIMIT"
+        ],
+        "category": "Profitability (Complex)"
+    },
+    {
+        "query": "Show me the sales trend for Electronics in 2024",
+        "expected_keywords": [
+            "revenue",
+            "Electronics",
+            "2024",
+            "GROUP BY"
+        ],
+        "category": "Time + Category"
+    }
+]
