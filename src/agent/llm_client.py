@@ -66,7 +66,8 @@ class GroqClient:
                 import streamlit as st
                 if "GROQ_API_KEY" in st.secrets:
                    self._api_key = st.secrets["GROQ_API_KEY"]
-            except ImportError:
+            except Exception:
+                # specific errors like StreamlitSecretNotFoundError vary by version
                 pass
         
         self._model = self.MODELS.get(model, model)

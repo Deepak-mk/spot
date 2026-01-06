@@ -10,6 +10,14 @@
         "category": "Granular Filter"
     },
     {
+        "query": "How many wireless mouse units were sold in toronto central?",
+        "expected_keywords": [
+            "SUM",
+            "units_sold"
+        ],
+        "category": "Case Sensitivity Test"
+    },
+    {
         "query": "What is the total revenue for TechCorp products?",
         "expected_keywords": [
             "SUM",

@@ -63,6 +63,9 @@ class VectorStore:
         self._latency_tracker = get_latency_tracker()
         
         self._try_load_faiss()
+        
+        # Try to load persisted data
+        self.load()
     
     def _try_load_faiss(self):
         """Try to load FAISS, fall back to numpy if not available."""
