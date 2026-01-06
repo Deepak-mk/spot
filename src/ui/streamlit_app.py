@@ -5,6 +5,7 @@ Full-featured with LLM, SQL, visualizations, and live observability.
 
 import streamlit as st
 import sys
+import time
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -261,6 +262,17 @@ def render_sidebar():
             memory = get_conversation_memory()
             memory.clear_session(st.session_state.session_id)
             add_log("info", "Chat history cleared")
+            st.rerun()
+
+        if st.button("🧠 Rebuild AI Memory", use_container_width=True):
+            with st.status("Rebuilding Semantic Index...", expanded=True) as status:
+                st.write("Ingesting metadata...")
+                ingest_semantic_data()
+                st.write("Refreshing vector store...")
+                st.session_state.data_loaded = True
+                status.update(label="Memory Rebuilt!", state="complete", expanded=False)
+            add_log("success", "Manually rebuilt semantic index")
+            time.sleep(1)
             st.rerun()
         
         if st.button("🧹 Clear Logs", use_container_width=True):
