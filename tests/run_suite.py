@@ -82,10 +82,20 @@ def run_evaluation():
                 sql = response.sql_query or ""
                 if sql:
                     keywords_found = [k for k in test.get("expected_keywords", []) if k.lower() in sql.lower()]
-                    if len(keywords_found) > 0:
+                    is_react_test = test.get("check_steps", False)
+                    react_ok = True
+                    
+                    if is_react_test:
+                        if not hasattr(response, "steps") or len(response.steps) == 0:
+                            react_ok = False
+                            outcome = "failed (no thought trace)"
+                        else:
+                            print(f"   Steps Captured: {len(response.steps)}")
+
+                    if len(keywords_found) > 0 and react_ok:
                         success = True
                         outcome = "passed"
-                    else:
+                    elif len(keywords_found) == 0:
                         # Maybe it wasn't SQL but text?
                         outcome = "executed (keywords missing)"
                 else:
