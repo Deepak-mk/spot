@@ -511,6 +511,12 @@ def render_chat():
             st.markdown(msg["content"])
             
             if msg["role"] == "assistant":
+                # Show Reasoning Steps
+                if msg.get("steps"):
+                    with st.expander("🧠 Agent Thought Process", expanded=False):
+                        for step in msg["steps"]:
+                            st.caption(step)
+                            
                 # Show retrieved context with similarity scores
                 if msg.get("retrieved_context"):
                     with st.expander("🔍 Retrieved Context (Similarity Scores)", expanded=False):
@@ -607,6 +613,12 @@ def process_query(query: str):
         
         st.markdown(result.answer)
         
+        # Show Reasoning Steps
+        if getattr(result, 'steps', None):
+             with st.expander("🧠 Agent Thought Process", expanded=False):
+                 for step in result.steps:
+                     st.caption(step)
+        
         # Show retrieved context with scores
         if getattr(result, 'retrieved_context', None):
             with st.expander("🔍 Retrieved Context (Similarity Scores)", expanded=False):
@@ -666,7 +678,8 @@ def process_query(query: str):
         "sql_result": result.sql_result,
         "retrieved_context": getattr(result, 'retrieved_context', []),
         "duration_ms": result.duration_ms,
-        "trace_id": result.trace_id
+        "trace_id": result.trace_id,
+        "steps": getattr(result, 'steps', [])
     })
     
     st.rerun()

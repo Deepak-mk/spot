@@ -55,6 +55,8 @@ NOTE: 'region' column is ONLY in dim_store, NOT in dim_date!
 3. For region data: JOIN dim_store s ON f.store_id = s.store_id, then use s.region
 4. For date grouping: JOIN dim_date d ON f.date_id = d.date_id, then use d.month, d.quarter, etc.
 5. IMPORTANT: The dataset contains data for 2024. Assume the current date is 2024-01-01 for all relative date queries (like "next 3 months").
+6. CRITICAL: If a value in the user query matches a "Sample Value" shown in the "Retrieved Context" (e.g. "Toronto Central"), you MUST use the column associated with that sample. Do NOT guess the column based on the value's name.
+   - Example: If retrieved context shows `store_name` has sample "Toronto Central", query `WHERE s.store_name = 'Toronto Central'`, NOT `s.region`.
 
 ## Response Format
 1. **Direct Answer**: Briefly contextualize the request (e.g. "Here is the revenue by region...").
@@ -97,6 +99,7 @@ class AgentResponse:
     token_usage: Optional[Dict[str, int]] = None
     success: bool = True
     error: Optional[str] = None
+    steps: List[str] = field(default_factory=list)
     
     def to_dict(self) -> dict:
         return {
@@ -112,6 +115,7 @@ class AgentResponse:
             "token_usage": self.token_usage,
             "success": self.success,
             "error": self.error,
+            "steps": self.steps,
         }
 
 
@@ -141,18 +145,22 @@ class AgentRuntime:
         """
         trace_id = trace_id or generate_trace_id()
         start_time = time.perf_counter()
+        steps = []
         
         # Start telemetry
         self._telemetry.start_request(query, trace_id, {"session_id": session_id})
         
         try:
             # Step 1: Control plane check
+            steps.append("🛡️ Checking Guardrails & Permissions...")
             can_proceed, reason = self._control_plane.validate_request(query, trace_id)
             if not can_proceed:
                 return self._error_response(trace_id, query, start_time, f"Blocked: {reason}")
             
             # Step 2: Retrieve context with similarity scores
+            steps.append("📚 Retrieving & Reranking Semantic Context...")
             context_chunks, retrieved_context = self._retrieve_context_with_scores(query, trace_id)
+            steps.append(f"   - Found {len(context_chunks)} relevant metadata chunks")
             
             # Step 3: Get conversation history
             history = []
@@ -186,6 +194,7 @@ Generate a SQL query and provide a clear answer."""
                 # Fallback to rule-based if no API key
                 answer, sql_query, sql_result = self._fallback_response(query)
             else:
+                steps.append("🧠 Thinking (Planning SQL generation)...")
                 llm_response = self._llm.chat(messages, trace_id=trace_id)
                 
                 if not llm_response.success:
@@ -198,6 +207,7 @@ Generate a SQL query and provide a clear answer."""
                 sql_result = None
                 
                 if sql_query:
+                    steps.append("⚡ Executing SQL Query...")
                     result = self._sql.execute(sql_query)
                     
                     # Check if result is empty or failed
@@ -255,7 +265,8 @@ Generate a SQL query and provide a clear answer."""
                 retrieved_context=retrieved_context,
                 duration_ms=elapsed,
                 token_usage={"prompt_tokens": len(user_message) // 4, "completion_tokens": len(answer) // 4},
-                success=True
+                success=True,
+                steps=steps
             )
             
         except Exception as e:

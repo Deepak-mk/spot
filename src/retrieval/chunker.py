@@ -131,6 +131,10 @@ class MetadataChunker:
         sample_values = col_info.get("sample_values", [])
         if sample_values:
             content += f"\nSample Values: {', '.join(str(v) for v in sample_values)}"
+            
+        synonyms = col_info.get("synonyms", [])
+        if synonyms:
+            content += f"\nSynonyms: {', '.join(synonyms)}"
         
         return Chunk(
             chunk_id=f"column_{table_name}_{col_name}",

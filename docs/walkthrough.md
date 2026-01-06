@@ -24,6 +24,7 @@
 ## 4. Platform Enhancements
 - **Deep Observability**: Live tracing of estimated costs and latency.
 - **Robustness**: Fixes for "No Tables Found" errors and Semantic Indexing checks.
+- **Resilience**: `VectorStore` now auto-loads persisted data on startup, fixing the "Fleeting Memory" bug.
 
 ## 5. Security & Validation
 - **Authentication**: Implemented simple Username/Password gate (`admin@admin.com` / `Admin@123`) using `st.session_state`.
@@ -33,4 +34,6 @@
 
 ## 6. Differentiators (AI Native Features)
 - **The Shield (Vector Guardrails)**: Implemented semantic blocking using Cosine Similarity (`threshold > 0.35`). The system now blocks "Democrats vs Republicans" as "Political" even without the keyword "politics" present.
+- **The Brain (Semantic Synonyms)**: Added synonym mapping to Metadata. The system now understands that "Earnings" = "Revenue" and "Location" = "Store Name" without explicit prompt engineering.
+- **The Thinking Agent (ReAct Viz)**: Exposed the agent's internal "Reasoning Trace" in the UI. Users can now expand a "🧠 Thought Process" block to see: *Guardrail Checks -> Semantic Retrieval -> SQL Planning -> Execution*.
 - **Precision**: Calibrated against false positives (Harmless queries score `0.07`, Violations score `>0.36`).

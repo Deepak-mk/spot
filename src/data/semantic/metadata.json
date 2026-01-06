@@ -68,14 +68,28 @@
                     "description": "Total revenue from the sale (same as actual_sales)",
                     "business_name": "Revenue",
                     "format": "currency",
-                    "aggregation": "SUM"
+                    "aggregation": "SUM",
+                    "synonyms": [
+                        "earnings",
+                        "income",
+                        "total sales",
+                        "turnover",
+                        "top line"
+                    ]
                 },
                 "cost": {
                     "type": "NUMERIC",
                     "description": "Cost of goods sold (COGS) for this transaction",
                     "business_name": "Cost",
                     "format": "currency",
-                    "aggregation": "SUM"
+                    "aggregation": "SUM",
+                    "synonyms": [
+                        "expenses",
+                        "expenditure",
+                        "spending",
+                        "cogs",
+                        "operational cost"
+                    ]
                 }
             }
         },
@@ -163,6 +177,12 @@
                         "Toronto Central",
                         "Downtown Flagship",
                         "Mall of America"
+                    ],
+                    "synonyms": [
+                        "location",
+                        "branch",
+                        "shop",
+                        "city"
                     ]
                 },
                 "region": {

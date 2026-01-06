@@ -43,8 +43,10 @@ def run_evaluation():
             duration = (time.time() - start_time) * 1000
             total_latency += duration
             
+            print(f"   SQL: {response.sql_query}")
+            print(f"   Row Count: {response.sql_result.get('row_count') if response.sql_result else 'None'}")
+            print(f"   First Row: {response.sql_result['rows'][0] if response.sql_result and response.sql_result.get('rows') else 'None'}")
             print(f"   Response Answer: {response.answer[:50]}...")
-            print(f"   Response Error: {getattr(response, 'error', '')}")
             
             # Analyze Result
             success = False
