@@ -127,7 +127,12 @@
                 "product_name": {
                     "type": "STRING",
                     "description": "Full product name/description",
-                    "business_name": "Product Name"
+                    "business_name": "Product Name",
+                    "sample_values": [
+                        "Wireless Mouse",
+                        "Laptop Pro 15",
+                        "Noise Cancelling Headphones"
+                    ]
                 },
                 "category": {
                     "type": "STRING",
@@ -153,7 +158,12 @@
                 "store_name": {
                     "type": "STRING",
                     "description": "Store name/location name",
-                    "business_name": "Store Name"
+                    "business_name": "Store Name",
+                    "sample_values": [
+                        "Toronto Central",
+                        "Downtown Flagship",
+                        "Mall of America"
+                    ]
                 },
                 "region": {
                     "type": "STRING",
