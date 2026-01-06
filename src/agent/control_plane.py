@@ -18,6 +18,8 @@ from threading import Lock
 from src.utils.helpers import timestamp_now, generate_trace_id, ErrorCategory, PlatformError
 from src.utils.config import get_settings
 from src.observability.tracing import get_tracer, TraceEventType
+import numpy as np
+from src.retrieval.embeddings import get_embedding_model
 
 
 class AgentStatus(Enum):
@@ -59,10 +61,20 @@ class PolicyConfig:
     enable_cost_limits: bool = True
     max_cost_per_request_usd: float = 0.10
     max_cost_per_day_usd: float = 10.00
+    max_cost_per_day_usd: float = 10.00
+    max_cost_per_day_usd: float = 10.00
     blocked_topics: List[str] = field(default_factory=lambda: [
-        "politics", "religion", "hate speech", "medical advice", "legal advice"
+        "Political discussions, elections, democrats, republicans, government policy",
+        "Religious debates, theology, god, atheism",
+        "Hate speech, racism, sexism, discrimination, slurs",
+        "Medical advice, diagnosis, prescription, treatment",
+        "Legal advice, lawsuit, court case, contract interpretation",
+        "Violence, killing, physical harm, weapons, attack, death threats",
+        "Self-harm, suicide, depression, hurting oneself",
+        "Sexual content, pornography, explicit material"
     ])
     enable_content_guardrails: bool = True
+    semantic_guardrail_threshold: float = 0.35
     
     @classmethod
     def from_file(cls, path: str) -> "PolicyConfig":
@@ -530,7 +542,12 @@ class ControlPlane:
         self._permission_checker = PermissionChecker(self._policy)
         self._request_timestamps: List[float] = []
         self._daily_cost: float = 0.0
+        self._daily_cost: float = 0.0
         self._lock = Lock()
+        
+        # Semantic Guardrails State
+        self._embedding_model = get_embedding_model()
+        self._blocked_topic_embeddings: Optional[np.ndarray] = None
         
         # Register default model
         settings = get_settings()
@@ -638,17 +655,48 @@ class ControlPlane:
     def validate_content(self, text: str) -> tuple[bool, Optional[str]]:
         """
         Validate text content against policy guardrails.
-        Currently implements keyword matching. Future: Integrate NeMo Guardrails.
+        1. Keyword Match (Fast)
+        2. Semantic Similarity (Smart)
         """
         if not self._policy.enable_content_guardrails:
             return True, None
             
-        # Basic keyword check (The "Level 1" Content Guardrail)
+        # 1. Basic Keyword Check (Fast)
         text_lower = text.lower()
-        for topic in self._policy.blocked_topics:
-            if topic in text_lower:
-                return False, f"Content blocked: violates '{topic}' policy."
-                
+        
+        # Check against simple keywords first (derived from topics)
+        # This is an optimization: if "politics" is in the text, block it.
+        simple_keywords = ["politics", "religion", "hate", "violence", "suicide", "sex"]
+        for kw in simple_keywords:
+            if kw in text_lower:
+                return False, f"Content blocked: violates '{kw}' policy."
+        
+        # 2. Semantic Vector Check (Deep)
+        try:
+             # Lazy load blocked embeddings
+             if self._blocked_topic_embeddings is None:
+                 self._blocked_topic_embeddings = self._embedding_model.embed(self._policy.blocked_topics).embeddings
+                 # Normalize for cosine similarity
+                 norms = np.linalg.norm(self._blocked_topic_embeddings, axis=1, keepdims=True)
+                 self._blocked_topic_embeddings = self._blocked_topic_embeddings / norms
+             
+             # Embed query
+             query_vec = self._embedding_model.embed_single(text)
+             query_norm = query_vec / np.linalg.norm(query_vec)
+             
+             # Compute Cosine Similarity
+             similarities = np.dot(self._blocked_topic_embeddings, query_norm)
+             max_sim_idx = np.argmax(similarities)
+             max_sim = similarities[max_sim_idx]
+             
+             if max_sim > self._policy.semantic_guardrail_threshold:
+                 violated_topic = self._policy.blocked_topics[max_sim_idx]
+                 return False, f"Content blocked: Semantically related to '{violated_topic}' (Confidence: {max_sim:.2f})"
+                 
+        except Exception as e:
+            # Fail open to avoid blocking valid queries on error, but log it
+            print(f"Semantic Guardrail Error: {e}")
+            
         return True, None
 
     def validate_request(self, query: str, trace_id: Optional[str] = None) -> tuple[bool, Optional[str]]:
