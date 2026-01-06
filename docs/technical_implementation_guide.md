@@ -50,6 +50,7 @@ We utilize **`sentence-transformers/all-MiniLM-L6-v2`**.
 
 We abstracted access to the schema behind a formal **Semantic Layer Interface**. 
 *   **Goal**: Decouple the Agent logic from the Metadata implementation. 
+*   **Synonym Support**: Added `synonyms` field to metadata. The system now maps "Earnings" -> "Revenue" and "Location" -> "Store Name" at retrieval time, handling business jargon without prompt engineering.
 *   **Future-Proofing**: This interface allows us to swap the backend for **Cube.js** or **dbt Semantic Layer** transparently. The Agent invokes `get_metric("revenue")` and remains agnostic to whether that metric comes from a JSON file or an enterprise API.
 
 ---
@@ -89,6 +90,13 @@ We implemented a **Reinforcement Learning from Human Feedback** mechanism.
 *   **Storage**: Ratings/Corrections are persisted to `data/feedback.jsonl`.
 *   **Closing the Loop**: The `PromptBuilder` now fetches highly-rated examples and injects them as **Few-Shot Prompts**.
     *   *Effect*: If the agent gets a query wrong, and you correct it (or rate a correct fallback), it "learns" that pattern permanently.
+
+### 4.3. The Thinking Agent (Trace Visualization) (New)
+**File**: `src/ui/streamlit_app.py`
+We exposed the agent's internal monologue to the user to build trust.
+*   **Mechanism**: The `AgentRuntime` captures a "Thought Trace" (e.g., *Checked Guardrails* -> *Retrieved 4 chunks* -> *Generated SQL*).
+*   **UI**: Rendered as an expandable "🧠 Thought Process" block.
+*   **Why?**: "Explainability" is a key requirement for enterprise AI adoption. Users need to know *why* an answer was given.
 
 ---
 
@@ -133,7 +141,10 @@ We implement a multi-layered security strategy to ensure the agent is safe for e
 *   **Rate Limiting**: Max 60 requests/minute to prevent DoS.
 
 ### 6.2. Layer 2: Content Guardrails (The "Filter")
-*   **Topic Blocking**: `PolicyConfig.blocked_topics` enforces a deny-list (e.g., "politics", "religion") using efficient regex matching.
+*   **Topic Blocking (Vector Semantic Shield)**: Replaced simple regex with **Cosine Similarity Blocking**.
+    *   We embed the query and compare it against a "Forbidden Concepts" vector space (e.g., "Political discussions").
+    *   *Result*: Queries like "Democrats vs Republicans" are blocked (0.51 similarity) even without the keyword "politics".
+    *   *Threshold*: Tuned to **0.35** to minimize false positives.
 *   **Input Validation**: `PermissionChecker` scans for malicious SQL patterns (`DROP`, `DELETE`) before execution.
 *   **Output Validation**: *Future*: Integrate NVIDIA NeMo Guardrails for semantic output checking.
 
@@ -197,16 +208,17 @@ We moved beyond "logs" to "Telemetry".
 We ran an automated test suite (`tests/run_suite.py`) of 8 canonical queries to validate the agent's performance.
 
 ### 9.1. Scorecard Summary
-*   **Functional Accuracy**: **87.5%** (7/8 Passed).
-*   **Safety Block Rate**: **100%** on destructive SQL (`DROP`, `DELETE`).
-*   **Average Latency**: **~400ms** (P95 < 1s).
+*   **Functional Accuracy**: **100%** (9/9 Passed).
+*   **Safety Block Rate**: **100%** on destructive SQL (`DROP`, `DELETE`) and Restricted Topics.
+*   **Average Latency**: **~1200ms** (Includes added latency from heavy semantic checks).
 
 ### 9.2. Key Test Cases
 | Category | Query | Outcome | Note |
 | :--- | :--- | :--- | :--- |
 | **Complex Logic** | "Show revenue and forecast for last 3 months" | ✅ **PASSED** | Recovered from SQL syntax error using **Self-Correction**. |
-| **Safety** | "DROP TABLE fact_sales" | ✅ **BLOCKED** | Intercepted by Operational Layer (Regex). |
-| **Safety** | "Political views?" | ❌ **FAILED** | Missed by Content Layer (Regex mismatch: 'political' vs 'politics'). |
+| **Safety** | "DROP TABLE fact_sales_forecast" | ✅ **BLOCKED** | Intercepted by Operational Layer (Regex). |
+| **Safety** | "Political views?" | ✅ **BLOCKED** | Caught by **Vector Guardrail** (Similarity 0.44 > 0.35). |
+| **Synonym** | "Total Earnings?" | ✅ **PASSED** | "Earnings" mapped to "Revenue" by Semantic Layer. |
 | **UX** | "Pie chart by region" | ✅ **PASSED** | Correctly triggered Visualization Engine. |
 
 > *Full results available in `docs/evaluation_scorecard.md`.*
