@@ -1,93 +1,74 @@
 # 🚀 Agentic Analytics Platform (Enterprise Edition)
 
-**"The AI Analyst that doesn't just talk, but acts."**
-
-This platform is a production-grade **Agentic SQL System** designed to bridge the gap between natural language questions and enterprise data warehouses. It features a robust governance layer ("The Joystick"), a self-improving feedback loop, and deep observability.
+> **Interview Panel Welcome**: This repository contains the complete source code, documentation, and "One-Click" setup for the Agentic SQL Platform.
 
 ---
 
-## ✨ Key Features
+## 📚 Documentation Package
 
-### 🧠 1. The Agentic Core
-*   **Zero-Shot ReAct Loop**: Autonomously plans and executes analysis steps.
-*   **Context-Aware Memory**: Inherits data results across conversation turns (e.g., "Compare that to Q2").
-*   **RAG-Powered**: Retrieval Augmented Generation ensures 100% schema accuracy.
+We have prepared a complete documentation suite for your review:
 
-### 🛡️ 2. The Joystick (Governance)
-*   **Kill Switch**: Instant manual or automated system halt.
-*   **Cost Budgeting**: Hard stops at daily dollar limits (e.g., $10/day).
-*   **Policy Guardrails**: Regex-fenced read-only access (No `DROP`/`DELETE`).
-
-### 🔄 3. Self-Learning Feedback Loop
-*   **RLHF-Lite**: Thumbs Up/Down interface for user feedback.
-*   **Few-Shot Injection**: Automatically converts positive examples into prompt context for future improvement.
-
-### 📊 4. Deep Observability
-*   **Metrics Panel**: Real-time Cost ($), Latency (ms), and Query Counts.
-*   **Structured Logs**: DataFrame-based log viewer with filtering and sorting.
-*   **Traceability**: Every action is linked via a unique `trace_id`.
-
-### 🏗️ 5. Semantic Abstraction
-*   **Semantic Layer**: Decoupled schema logic aimed at future integration with **Cube.js** or **dbt**.
+| Document | Audience | Description |
+| :--- | :--- | :--- |
+| **[📄 Project Proposal](docs/project_proposal.md)** | **Product/Exec** | Executive summary, Problem/Solution, ROI, and Roadmap. |
+| **[🏗️ System Architecture](docs/architecture.md)** | **Architects** | Component diagrams, Data Flow, and Tech Stack. |
+| **[📖 User Manual](docs/user_manual.md)** | **End Users** | Step-by-step guide to using the Chat & Observability features. |
+| **[⚙️ Technical Deep Dive](docs/technical_implementation_guide.md)** | **Engineers** | Detailed breakdown of the RAG pipeline, Guardrails, and "War Stories". |
+| **[📊 Evaluation Scorecard](docs/custom_evaluation_scorecard.md)** | **QA/Trust** | Automated test results proving 100% accuracy and safety. |
 
 ---
 
-## 🛠️ Architecture
+## ✨ System Highlights ("Why this is Differentiated")
 
-For a deep dive into the 0-to-1 build process, see the **[Technical Implementation Guide](docs/technical_implementation_guide.md)**.
-
-![Architecture](docs/images/architecture_diagram.png) *(Placeholder)*
+1.  **Thinking Agent (ReAct)**: It doesn't just guess SQL; it *plans, executes, and verifies*. (See "Thought Process" in UI).
+2.  **The Shield (Vector Guardrails)**: Blocks semantic violations like "Politics" even without keywords.
+3.  **The Brain (Synonyms)**: Knows "Earnings" = `revenue` via metadata enhancement.
+4.  **The Joystick (Control Plane)**: Real-time kill switch and budget caps ($10/day).
+5.  **Self-Correction**: Automatically fixes SQL syntax errors without user intervention.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start (One-Click Setup)
 
 ### Prerequisites
 *   Python 3.10+
-*   `GROQ_API_KEY` (in `.env`)
+*   Git
 
 ### Installation
-
 ```bash
-# 1. Clone & Install
+# 1. Clone
 git clone https://github.com/your-org/agentic-analytics-platform.git
 cd agentic-analytics-platform
+
+# 2. Install
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Configure
-cp .env.example .env
-# Edit .env with your API keys
+# 3. Configure API Key
+# (We use Groq for speed. Get a key at console.groq.com)
+echo "GROQ_API_KEY=gsk_..." > .env
 
-# 3. Run
+# 4. Run Application
 streamlit run src/ui/streamlit_app.py
 ```
 
-### CI/CD
-This project uses **GitHub Actions** for:
-*   ✅ Python Linting (Ruff/Flake8)
-*   ✅ Unit Tests (Pytest)
-*   ✅ Security Scanning
-
-See `.github/workflows/ci.yml` for details.
+### Credentials (Login)
+*   **User**: *[Provided Separately]*
+*   **Pass**: *[Provided Separately]*
 
 ---
 
-## 📂 Project Structure
-
+## 🛠️ Project Structure
 ```
-├── .github/workflows/    # CI/CD Pipelines
-├── data/                 # Metadata & Feedback Store
-├── docs/                 # Technical Documentation
+├── docs/                 # <--- START HERE
 ├── src/
-│   ├── agent/            # Core Thinking & Feedback Logic
-│   ├── retrieval/        # RAG & Embeddings
-│   ├── observablity/     # Telemetry & Tracing
-│   └── ui/               # Streamlit Frontend
-└── requirements.txt
+│   ├── agent/            # Core ReAct Logic
+│   ├── retrieval/        # RAG Engine
+│   ├── ui/               # Streamlit Frontend
+│   └── data/             # Semantic Metadata
+├── tests/                # Regression Suite
+└── README.md
 ```
 
----
-
-> Built with ❤️ by Deepak MK
+> **Built by Deepak MK**

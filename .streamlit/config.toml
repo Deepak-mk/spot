@@ -9,3 +9,9 @@ serverAddress = "localhost"
 [theme]
 base = "light"
 primaryColor = "#FF4B4B"
+
+[client]
+showSidebarNavigation = false
+
+[ui]
+hideTopBar = false

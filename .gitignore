@@ -22,3 +22,6 @@ dist/
 # Application
 *.log
 traces/
+
+# Documentation
+docs/

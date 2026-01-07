@@ -43,8 +43,11 @@ if not check_password():
     st.stop()
 
 # Custom CSS
-st.markdown("""
-<style>
+# Custom CSS
+role = st.session_state.get("user_role", "guest")
+
+# Defines base styles
+base_header_css = """
     .main-header {
         font-size: 2.2rem;
         font-weight: 700;
@@ -58,6 +61,31 @@ st.markdown("""
         font-size: 1rem;
         margin-bottom: 1rem;
     }
+"""
+
+if role == "guest":
+    # Guest: Hide Everything
+    st.markdown(f"""
+    <style>
+        /* Hide Streamlit Controls for Guest */
+        #MainMenu {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
+        header {{visibility: hidden;}}
+        [data-testid="stToolbar"] {{visibility: hidden;}}
+        {base_header_css}
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    # Admin: Show Everything but keep styling
+    st.markdown(f"""
+    <style>
+        {base_header_css}
+    </style>
+    """, unsafe_allow_html=True)
+
+# Common CSS for Logs & Metrics
+st.markdown("""
+<style>
     .log-entry {
         font-family: 'Monaco', 'Menlo', monospace;
         font-size: 0.72rem;
@@ -264,35 +292,39 @@ def render_sidebar():
             add_log("info", "Chat history cleared")
             st.rerun()
 
-        if st.button("🧠 Rebuild AI Memory", use_container_width=True):
-            with st.status("Rebuilding Semantic Index...", expanded=True) as status:
-                st.write("Ingesting metadata...")
-                ingest_semantic_data()
-                st.write("Refreshing vector store...")
-                st.session_state.data_loaded = True
-                status.update(label="Memory Rebuilt!", state="complete", expanded=False)
-            add_log("success", "Manually rebuilt semantic index")
-            time.sleep(1)
-            st.rerun()
-        
-        if st.button("🧹 Clear Logs", use_container_width=True):
-            st.session_state.logs = []
-            st.rerun()
-        
-        st.divider()
-        
-        st.markdown("### 🛡️ Safety")
-        if control_plane.kill_switch.is_active():
-            st.error("🛑 KILL SWITCH ACTIVE")
-            if st.button("✅ Disable"):
-                control_plane.kill_switch.disable("ui")
-                add_log("warning", "Kill switch disabled")
+        # Admin Only Controls
+        if role == "admin":
+            if st.button("🧠 Rebuild AI Memory", use_container_width=True):
+                with st.status("Rebuilding Semantic Index...", expanded=True) as status:
+                    st.write("Ingesting metadata...")
+                    ingest_semantic_data()
+                    st.write("Refreshing vector store...")
+                    st.session_state.data_loaded = True
+                    status.update(label="Memory Rebuilt!", state="complete", expanded=False)
+                add_log("success", "Manually rebuilt semantic index")
+                time.sleep(1)
                 st.rerun()
+            
+            if st.button("🧹 Clear Logs", use_container_width=True):
+                st.session_state.logs = []
+                st.rerun()
+            
+            st.divider()
+            
+            st.markdown("### 🛡️ Safety")
+            if control_plane.kill_switch.is_active():
+                st.error("🛑 KILL SWITCH ACTIVE")
+                if st.button("✅ Disable"):
+                    control_plane.kill_switch.disable("ui")
+                    add_log("warning", "Kill switch disabled")
+                    st.rerun()
+            else:
+                if st.button("🛑 Kill Switch", use_container_width=True):
+                    control_plane.kill_switch.enable("Manual trigger", "ui")
+                    add_log("warning", "Kill switch ENABLED")
+                    st.rerun()
         else:
-            if st.button("🛑 Kill Switch", use_container_width=True):
-                control_plane.kill_switch.enable("Manual trigger", "ui")
-                add_log("warning", "Kill switch ENABLED")
-                st.rerun()
+             st.info("🔒 Admin controls (Kill Switch / Memory) are hidden for Guest users.")
 
 
 def render_observability_panel():
