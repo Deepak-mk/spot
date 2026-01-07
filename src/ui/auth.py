@@ -49,6 +49,7 @@ def check_password():
         # First run, show input
         st.markdown(
             """
+            <style>
             /* Nuclear Option: Hide ALL Streamlit Cloud UI Elements */
             .stApp > header {visibility: hidden !important; display: none !important;}
             header {visibility: hidden !important; display: none !important;}
