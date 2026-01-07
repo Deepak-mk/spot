@@ -4,6 +4,9 @@
 > **Format**: Technical Presentation / Whitepaper
 
 ---
+> **Related Docs**: [System Architecture](architecture.md) | [User Manual](user_manual.md) | [Proposal](project_proposal.md)
+
+---
 
 ## 📑 Agenda
 1.  **The Challenge**: Bridging NL to SQL accurately.

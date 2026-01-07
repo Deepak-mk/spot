@@ -27,7 +27,7 @@
 - **Resilience**: `VectorStore` now auto-loads persisted data on startup, fixing the "Fleeting Memory" bug.
 
 ## 5. Security & Validation
-- **Authentication**: Implemented simple Username/Password gate (`admin@admin.com` / `Admin@123`) using `st.session_state`.
+- **Authentication**: Implemented simple Username/Password gate (Credentials Provided Separately) using `st.session_state`.
 - **Validation**: 100% Pass Rate on Custom Prompt Suite (Granular Logic, Case Sensitivity, Trends).
 - **Hallucination Fix**: Eliminated "Schema Hallucination" (Region vs. Store) by enforcing strict metadata definitions and sample value indexing.
 - **Reliability**: Added **"Rebuild AI Memory"** button in UI to instantly flush stale vector embeddings without server restart.

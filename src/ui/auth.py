@@ -10,48 +10,59 @@ def check_password():
         user = st.session_state["username"]
         password = st.session_state["password"]
         
-        # Get secrets with fallback to defaults
-        correct_user = os.getenv("ADMIN_USER", "") or st.secrets.get("ADMIN_USER", "admin@admin.com")
-        correct_password = os.getenv("ADMIN_PASSWORD", "") or st.secrets.get("ADMIN_PASSWORD", "Admin@123")
+        def get_secret(key, default):
+            # 1. Try Environment Variable
+            val = os.getenv(key)
+            if val: return val
+            
+            # 2. Try Streamlit Secrets (Safely)
+            try:
+                if key in st.secrets:
+                    return st.secrets[key]
+            except Exception:
+                pass
+            
+            # 3. Fallback
+            return default
 
-        if user == correct_user and password == correct_password:
+        # Get secrets with fallback to defaults
+        admin_user = get_secret("ADMIN_USER", "admin@admin.com")
+        admin_pass = get_secret("ADMIN_PASSWORD", "Admin@123")
+        
+        guest_user = get_secret("GUEST_USER", "demo@agentic.ai")
+        guest_pass = get_secret("GUEST_PASSWORD", "DemoAccess!2025")
+
+        if user == admin_user and password == admin_pass:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store password
+            st.session_state["user_role"] = "admin"
+            del st.session_state["password"]
+            del st.session_state["username"]
+        elif user == guest_user and password == guest_pass:
+            st.session_state["password_correct"] = True
+            st.session_state["user_role"] = "guest"
+            del st.session_state["password"]
             del st.session_state["username"]
         else:
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # First run, show input for username and password
+        # First run, show input
         st.markdown(
             """
             <style>
-            .stTextInput > div > div > input {
-                background-color: #f0f2f6;
-            }
-            .auth-container {
-                max_width: 400px;
-                margin: 100px auto;
-                padding: 2rem;
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                background-color: white;
-            }
+            .stTextInput > div > div > input { background-color: #f0f2f6; }
+            .auth-container { max_width: 400px; margin: 100px auto; padding: 2rem; border-radius: 10px; background: white; }
             </style>
-            """,
-            unsafe_allow_html=True
+            """, unsafe_allow_html=True
         )
-        
         with st.container():
             st.markdown("## 🔐 Login Required")
             st.text_input("Username", key="username")
             st.text_input("Password", type="password", key="password")
             st.button("Login", on_click=password_entered)
-            
         return False
     
     elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error
         with st.container():
             st.markdown("## 🔐 Login Required")
             st.text_input("Username", key="username")
@@ -61,7 +72,6 @@ def check_password():
         return False
     
     else:
-        # Password correct
         return True
 
 def logout():
