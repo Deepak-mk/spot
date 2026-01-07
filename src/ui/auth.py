@@ -51,10 +51,16 @@ def check_password():
             """
             <style>
             /* Hide Streamlit Toolbar & Header on Login */
-            .stApp > header {visibility: hidden;}
-            [data-testid="stToolbar"] {visibility: hidden;}
-            [data-testid="stHeader"] {visibility: hidden;}
-            [data-testid="stStatusWidget"] {visibility: hidden;}
+            .stApp > header {visibility: hidden; display: none;}
+            [data-testid="stToolbar"] {visibility: hidden; display: none;}
+            [data-testid="stHeader"] {visibility: hidden; display: none;}
+            [data-testid="stStatusWidget"] {visibility: hidden; display: none;}
+            
+            /* Hide Footer & Manage Button on Login */
+            footer {visibility: hidden; display: none;}
+            [data-testid="stFooter"] {visibility: hidden; display: none;}
+            .viewerBadge_container__1QSob {display: none;}
+            div[class^='viewerBadge'] {display: none;}
             
             .stTextInput > div > div > input { background-color: #f0f2f6; }
             .auth-container { max_width: 400px; margin: 100px auto; padding: 2rem; border-radius: 10px; background: white; }
