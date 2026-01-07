@@ -50,6 +50,12 @@ def check_password():
         st.markdown(
             """
             <style>
+            /* Hide Streamlit Toolbar & Header on Login */
+            .stApp > header {visibility: hidden;}
+            [data-testid="stToolbar"] {visibility: hidden;}
+            [data-testid="stHeader"] {visibility: hidden;}
+            [data-testid="stStatusWidget"] {visibility: hidden;}
+            
             .stTextInput > div > div > input { background-color: #f0f2f6; }
             .auth-container { max_width: 400px; margin: 100px auto; padding: 2rem; border-radius: 10px; background: white; }
             </style>
