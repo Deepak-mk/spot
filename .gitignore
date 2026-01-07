@@ -1,7 +1,10 @@
 # Security
 .env
 .env.local
+.env
+.env.local
 secrets.json
+.streamlit/secrets.toml
 
 # Python
 __pycache__/
