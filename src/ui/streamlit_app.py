@@ -68,10 +68,15 @@ if role == "guest":
     st.markdown(f"""
     <style>
         /* Hide Streamlit Controls for Guest */
-        #MainMenu {{visibility: hidden;}}
-        footer {{visibility: hidden;}}
-        header {{visibility: hidden;}}
-        [data-testid="stToolbar"] {{visibility: hidden;}}
+        #MainMenu {{visibility: hidden; display: none;}}
+        footer {{visibility: hidden; display: none;}}
+        header {{visibility: hidden; display: none;}}
+        [data-testid="stToolbar"] {{visibility: hidden; display: none;}}
+        [data-testid="stFooter"] {{visibility: hidden; display: none;}}
+        .viewerBadge_container__1QSob {{display: none;}} /* Aggressive hide for Viewer Badge */
+        div[class^='viewerBadge'] {{display: none;}}     /* Regex-like hide for Viewer Badge */
+        button[kind="header"] {{display: none;}}         /* Hide any header buttons */
+        
         {base_header_css}
     </style>
     """, unsafe_allow_html=True)
