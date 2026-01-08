@@ -59,23 +59,37 @@ def check_password():
             # 3. Persistence & Alerting (Webhook + SMTP)
             alert_sent = False
             
-            # Option A: Webhook (Slack/Discord) - PREFERRED for Persistence
+            # 3. Persistence & Alerting
+            alert_sent = False
+            
+            # Option A: ntfy.sh (Open Source) - PREFERRED
+            # Just set NTFY_TOPIC in secrets (e.g., "spot-alerts-deepak")
+            ntfy_topic = get_secret("NTFY_TOPIC", "")
+            if ntfy_topic:
+                try:
+                    import requests
+                    requests.post(f"https://ntfy.sh/{ntfy_topic}", 
+                        data=f"🚨 Guest Login: {user} from IP {client_ip}".encode("utf-8"),
+                        headers={"Title": "Spot Security Alert", "Priority": "high"}
+                    )
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🔔 ntfy.sh alert sent to topic '{ntfy_topic}'")
+                    alert_sent = True
+                except Exception as e:
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ ntfy.sh failed: {e}")
+
+            # Option B: Slack/Discord Webhook
             webhook_url = get_secret("ALERT_WEBHOOK_URL", "")
-            if webhook_url:
+            if not alert_sent and webhook_url:
                 try:
                     import requests
                     import json
-                    
-                    payload = {
-                        "text": f"🚨 *Spot Security Alert*\n*User:* `{user_email}`\n*Role:* Guest\n*IP:* `{ip_address}`\n*Time:* `{time.strftime('%Y-%m-%d %H:%M:%S')}`"
-                    }
+                    payload = {"text": f"🚨 *Spot Security Alert*\n*User:* `{user}`\n*IP:* `{client_ip}`"}
                     requests.post(webhook_url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
-                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🔔 Webhook alert sent.")
                     alert_sent = True
-                except Exception as e:
-                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ Webhook failed: {e}")
+                except Exception:
+                    pass
 
-            # Option B: SMTP (Email) - Fallback
+            # Option C: SMTP (Fallback)
             if not alert_sent and sender_email and sender_password:
                 try:
                     import smtplib
