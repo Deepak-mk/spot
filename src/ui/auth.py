@@ -56,37 +56,55 @@ def check_password():
                 print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ℹ️ Email alert skipped: Known Admin IP ({ip_address}).")
                 return
 
-            # 3. Send Email
-            try:
-                import smtplib
-                from email.mime.text import MIMEText
-                
-                recipient = "deepak09b@gmail.com"
-                subject = f"🚨 Spot Alert: Guest Login from {ip_address}"
-                body = f"""
-                Spot Agentic Platform Alert
-                ---------------------------
-                User: {user_email}
-                Role: Guest
-                IP: {ip_address}
-                Time: {time.strftime('%Y-%m-%d %H:%M:%S')}
-                
-                If this wasn't expected, please check the dashboard logs.
-                """
-                
-                msg = MIMEText(body)
-                msg['Subject'] = subject
-                msg['From'] = sender_email
-                msg['To'] = recipient
-                
-                # Gmail SMTP Default
-                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                    server.login(sender_email, sender_password)
-                    server.sendmail(sender_email, recipient, msg.as_string())
-                
-                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 📧 Email alert sent to {recipient}")
-            except Exception as e:
-                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ Email alert failed: {e}")
+            # 3. Persistence & Alerting (Webhook + SMTP)
+            alert_sent = False
+            
+            # Option A: Webhook (Slack/Discord) - PREFERRED for Persistence
+            webhook_url = get_secret("ALERT_WEBHOOK_URL", "")
+            if webhook_url:
+                try:
+                    import requests
+                    import json
+                    
+                    payload = {
+                        "text": f"🚨 *Spot Security Alert*\n*User:* `{user_email}`\n*Role:* Guest\n*IP:* `{ip_address}`\n*Time:* `{time.strftime('%Y-%m-%d %H:%M:%S')}`"
+                    }
+                    requests.post(webhook_url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🔔 Webhook alert sent.")
+                    alert_sent = True
+                except Exception as e:
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ Webhook failed: {e}")
+
+            # Option B: SMTP (Email) - Fallback
+            if not alert_sent and sender_email and sender_password:
+                try:
+                    import smtplib
+                    from email.mime.text import MIMEText
+                    
+                    recipient = "deepak09b@gmail.com"
+                    subject = f"🚨 Spot Alert: Guest Login from {ip_address}"
+                    body = f"""
+                    Spot Agentic Platform Alert
+                    ---------------------------
+                    User: {user_email}
+                    Role: Guest
+                    IP: {ip_address}
+                    Time: {time.strftime('%Y-%m-%d %H:%M:%S')}
+                    """
+                    
+                    msg = MIMEText(body)
+                    msg['Subject'] = subject
+                    msg['From'] = sender_email
+                    msg['To'] = recipient
+                    
+                    # Gmail SMTP Default
+                    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                        server.login(sender_email, sender_password)
+                        server.sendmail(sender_email, recipient, msg.as_string())
+                    
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 📧 Email alert sent to {recipient}")
+                except Exception as e:
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ Email alert failed: {e}")
 
         if user == admin_user and password == admin_pass:
             st.session_state["password_correct"] = True
