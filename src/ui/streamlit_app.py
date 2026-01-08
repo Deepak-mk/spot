@@ -155,6 +155,10 @@ def add_log(level: str, message: str, trace_id: str = None):
     if "logs" not in st.session_state:
         st.session_state.logs = []
     st.session_state.logs.append(log)
+    
+    # Mirror to console for cloud logging
+    print(f"[{level.upper()}] {message}")
+
     if len(st.session_state.logs) > 100:
         st.session_state.logs = st.session_state.logs[-100:]
 
