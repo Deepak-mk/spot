@@ -311,6 +311,10 @@ def render_sidebar():
 
         # Admin Only Controls
         if role == "admin":
+            if st.button("🛡️ Control Plane", use_container_width=True):
+                st.session_state.show_control_plane = True
+                add_log("info", "Opened control plane")
+                st.rerun()
             if st.button("🧠 Rebuild AI Memory", use_container_width=True):
                 with st.status("Rebuilding Semantic Index...", expanded=True) as status:
                     st.write("Ingesting metadata...")
