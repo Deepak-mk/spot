@@ -561,6 +561,9 @@ class ControlPlane:
         self._daily_cost: float = 0.0
         self._lock = Lock()
         
+        # Analytics State
+        self._safety_stats = {"allowed": 0, "blocked": 0}
+        
         # Semantic Guardrails State
         self._embedding_model = get_embedding_model()
         self._blocked_topic_embeddings: Optional[np.ndarray] = None
@@ -595,6 +598,16 @@ class ControlPlane:
         if state.enabled:
             terminated = self._agent_registry.terminate_all("kill_switch")
             # Log would go here
+            
+    def get_safety_stats(self) -> Dict[str, int]:
+        """Get safety statistics."""
+        with self._lock:
+            return self._safety_stats.copy()
+
+    def _increment_stat(self, stat: str):
+        """Increment a statistic."""
+        with self._lock:
+            self._safety_stats[stat] = self._safety_stats.get(stat, 0) + 1
     
     @property
     def policy(self) -> PolicyConfig:
@@ -628,17 +641,20 @@ class ControlPlane:
         if self._kill_switch.is_active():
             reason = self._kill_switch.get_reason()
             self._log_policy_check(trace_id, "kill_switch", False, reason)
+            self._increment_stat("blocked")
             return False, f"Kill switch active: {reason}"
         
         # Check rate limit
         if not self._check_rate_limit():
             self._log_policy_check(trace_id, "rate_limit", False, "Rate limit exceeded")
+            self._increment_stat("blocked")
             return False, "Rate limit exceeded"
         
         # Check daily cost limit
         if self._policy.enable_cost_limits:
             if self._daily_cost >= self._policy.max_cost_per_day_usd:
                 self._log_policy_check(trace_id, "cost_limit", False, "Daily cost limit exceeded")
+                self._increment_stat("blocked")
                 return False, "Daily cost limit exceeded"
         
         self._log_policy_check(trace_id, "all_checks", True, None)
@@ -745,14 +761,17 @@ class ControlPlane:
         valid_perm, perm_error = self._permission_checker.validate_query(query)
         if not valid_perm:
             self._log_policy_check(trace_id, "query_permission", False, perm_error)
+            self._increment_stat("blocked")
             return False, perm_error
             
         # Validate query content (Topic/Guardrails)
         valid_content, content_error = self.validate_content(query)
         if not valid_content:
             self._log_policy_check(trace_id, "content_guardrail", False, content_error)
+            self._increment_stat("blocked")
             return False, content_error
         
+        self._increment_stat("allowed")
         return True, None
     
     def validate_tool_call(self, tool_name: str, trace_id: Optional[str] = None,
@@ -766,6 +785,7 @@ class ControlPlane:
         if not self._permission_checker.can_execute_tool(tool_name, user_id):
             reason = f"Tool not allowed: {tool_name}"
             self._log_policy_check(trace_id, "tool_permission", False, reason)
+            self._increment_stat("blocked")
             return False, reason
         
         self._log_policy_check(trace_id, "tool_permission", True, None)

@@ -22,57 +22,7 @@ from src.observability.telemetry import get_telemetry
 from src.observability.tracing import TraceEventType
 
 
-ANALYTICS_SYSTEM_PROMPT = """You are an AI analytics assistant for a sales and forecast dataset.
 
-## Database Schema
-
-### fact_sales_forecast (fact table)
-Columns: date_id, product_id, store_id, actual_sales, forecast_sales, forecast_lower_bound, forecast_upper_bound, units_sold, revenue, cost
-- Join to dim_date using: date_id
-- Join to dim_product using: product_id
-- Join to dim_store using: store_id
-
-### dim_date (dimension)
-Columns: date_id, calendar_date, year, quarter, month, fiscal_period
-- Note: 'month' contains full month name (e.g., 'January')
-- Note: 'calendar_date' is the date column (YYYY-MM-DD)
-
-### dim_product (dimension)
-Columns: product_id, product_name, category, brand
-
-### dim_store (dimension)
-Columns: store_id, store_name, region, country
-NOTE: 'region' column is ONLY in dim_store, NOT in dim_date!
-
-## Available Metrics
-- total_revenue = SUM(f.revenue)
-- gross_profit = SUM(f.revenue) - SUM(f.cost)
-- gross_margin = (SUM(f.revenue) - SUM(f.cost)) / SUM(f.revenue) * 100
-
-## SQL Rules
-1. ALWAYS generate SQL in ```sql blocks
-2. Use table aliases: f=fact_sales_forecast, d=dim_date, p=dim_product, s=dim_store
-3. For region data: JOIN dim_store s ON f.store_id = s.store_id, then use s.region
-4. For date grouping: JOIN dim_date d ON f.date_id = d.date_id, then use d.month, d.quarter, etc.
-5. IMPORTANT: The dataset contains data for 2024. Assume the current date is 2024-01-01 for all relative date queries (like "next 3 months").
-6. CRITICAL: If a value in the user query matches a "Sample Value" shown in the "Retrieved Context" (e.g. "Toronto Central"), you MUST use the column associated with that sample. Do NOT guess the column based on the value's name.
-   - Example: If retrieved context shows `store_name` has sample "Toronto Central", query `WHERE s.store_name = 'Toronto Central'`, NOT `s.region`.
-
-## Response Format
-1. **Direct Answer**: Briefly contextualize the request (e.g. "Here is the revenue by region...").
-2. **NO DATA TABLES**: Do NOT generate markdown tables with fictional numbers. The system will execute your SQL and display the real data grid/chart.
-3. **SQL Query**: Provide the SQL query in a ```sql block.
-4. **Explanation**: Briefly explain what the query extracts (e.g. "This query aggregates revenue by...").
-
-## Example Query for Revenue by Region:
-```sql
-SELECT s.region, SUM(f.revenue) as total_revenue
-FROM fact_sales_forecast f
-JOIN dim_store s ON f.store_id = s.store_id
-GROUP BY s.region
-ORDER BY total_revenue DESC
-```
-"""
 
 
 @dataclass
@@ -100,6 +50,7 @@ class AgentResponse:
     success: bool = True
     error: Optional[str] = None
     steps: List[str] = field(default_factory=list)
+    is_cached: bool = False
     
     def to_dict(self) -> dict:
         return {
@@ -116,6 +67,7 @@ class AgentResponse:
             "success": self.success,
             "error": self.error,
             "steps": self.steps,
+            "is_cached": self.is_cached
         }
 
 
@@ -133,6 +85,10 @@ class AgentRuntime:
         self._reranker = get_reranker()
         self._telemetry = get_telemetry()
         self._settings = get_settings()
+        
+        # Lazy load cache to avoid circular imports if any
+        from src.agent.cache import get_semantic_cache
+        self._cache = get_semantic_cache()
     
     def run(
         self,
@@ -157,6 +113,28 @@ class AgentRuntime:
             if not can_proceed:
                 return self._error_response(trace_id, query, start_time, f"Blocked: {reason}")
             
+            # Step 1.5: Check Semantic Cache
+            cached_data = self._cache.lookup(query)
+            if cached_data:
+                steps.append(f"⚡ Semantic Cache Hit (Score: {cached_data['similarity_score']:.2f})")
+                elapsed = duration_ms(start_time)
+                
+                # Log telemetry
+                self._telemetry.end_request(trace_id=trace_id, success=True, response="CACHED_RESPONSE")
+                
+                return AgentResponse(
+                    trace_id=trace_id,
+                    query=query,
+                    answer=f"⚡ {cached_data['answer']}", # Add visual indicator
+                    sql_query=cached_data['sql_query'],
+                    sql_result=cached_data['sql_result'],
+                    duration_ms=elapsed,
+                    token_usage={"prompt_tokens": len(query) // 4, "completion_tokens": 0},
+                    success=True,
+                    is_cached=True,
+                    steps=steps
+                )
+            
             # Step 2: Retrieve context with similarity scores
             steps.append("📚 Retrieving & Reranking Semantic Context...")
             context_chunks, retrieved_context = self._retrieve_context_with_scores(query, trace_id)
@@ -170,8 +148,12 @@ class AgentRuntime:
             # Step 4: Build prompt with context
             context_text = self._format_context_with_scores(context_chunks)
             
+            # Dynamic System Prompt
+            from src.agent.prompt_manager import get_prompt_manager
+            system_prompt = get_prompt_manager().get_system_prompt()
+            
             messages = [
-                {"role": "system", "content": ANALYTICS_SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
             ]
             
             # Add history
@@ -215,6 +197,11 @@ Generate a SQL query and provide a clear answer."""
                     
                     if result.success and not is_empty_result:
                         sql_result = result.to_dict()
+                        
+                        # Store in Semantic Cache
+                        self._cache.store(query, sql_query, sql_result, answer)
+                        steps.append("💾 Saved result to Semantic Cache")
+                        
                     else:
                         # SQL execution failed or returned no data - try fallback
                         if not result.success:
@@ -266,6 +253,7 @@ Generate a SQL query and provide a clear answer."""
                 duration_ms=elapsed,
                 token_usage={"prompt_tokens": len(user_message) // 4, "completion_tokens": len(answer) // 4},
                 success=True,
+                is_cached=False,
                 steps=steps
             )
             

@@ -399,8 +399,48 @@ def render_observability_panel():
         if is_active:
              st.error(f"⚠️ Kill Switch Reason: {ks['reason']}")
              
+        if is_active:
+             st.error(f"⚠️ Kill Switch Reason: {ks['reason']}")
+
         # Progress bar for budget
         st.progress(min(cost_usage / 100, 1.0), text=f"Budget Usage: {cost_usage:.1f}%")
+             
+        # Guardrail Analytics Chart
+        st.markdown("**🛡️ Guardrail Health**")
+        safety_stats = cp.get_safety_stats()
+        total_safety = safety_stats['allowed'] + safety_stats['blocked']
+        
+        if total_safety > 0:
+            import altair as alt
+            df_safety = pd.DataFrame([
+                {"Category": "Safe", "Value": safety_stats['allowed'], "Color": "#16a34a"},
+                {"Category": "Blocked", "Value": safety_stats['blocked'], "Color": "#dc2626"}
+            ])
+            
+            base = alt.Chart(df_safety).encode(
+                theta=alt.Theta("Value", stack=True)
+            )
+            
+            pie = base.mark_arc(outerRadius=80, innerRadius=50).encode(
+                color=alt.Color("Category", scale=alt.Scale(domain=["Safe", "Blocked"], range=["#16a34a", "#dc2626"]), legend=None),
+                tooltip=["Category", "Value"]
+            )
+            
+            text = base.mark_text(radius=90).encode(
+                text="Value",
+                order=alt.Order("Category"),
+                color=alt.value("black")  
+            )
+            
+            st.altair_chart(pie + text, use_container_width=True)
+            
+            # Simple text summary
+            block_rate = (safety_stats['blocked'] / total_safety) * 100
+            st.caption(f"Block Rate: {block_rate:.1f}% ({safety_stats['blocked']} blocked)")
+        else:
+            st.info("No traffic analyzed yet.")
+
+        st.divider()
 
         # Emergency Controls
         if is_active:
@@ -745,55 +785,74 @@ def render_control_plane_ui():
     st.markdown("## 🛡️ Guardrails & Policy")
     st.markdown("Configure system governance and blocked topics.")
     
-    cp = get_control_plane()
-    policy = cp.policy
+    tab_guardrails, tab_prompts = st.tabs(["🛡️ Guardrails", "📝 Prompts"])
     
-    # 1. Topic Guardrails
-    st.markdown("### 🚫 Blocked Topics")
-    st.info("Queries semantically related to these topics will be blocked.")
-    
-    # Create a dynamic list editor
-    current_topics = policy.blocked_topics
-    
-    # Add new topic
-    c1, c2 = st.columns([3, 1])
-    new_topic = c1.text_input("Add new topic to block")
-    if c2.button("Add Topic", use_container_width=True) and new_topic:
-        if new_topic not in current_topics:
-            current_topics.append(new_topic)
-            policy.blocked_topics = current_topics
+    with tab_guardrails:
+        cp = get_control_plane()
+        policy = cp.policy
+        
+        # 1. Topic Guardrails
+        st.markdown("### 🚫 Blocked Topics")
+        st.info("Queries semantically related to these topics will be blocked.")
+        
+        # Create a dynamic list editor
+        current_topics = policy.blocked_topics
+        
+        # Add new topic
+        c1, c2 = st.columns([3, 1])
+        new_topic = c1.text_input("Add new topic to block")
+        if c2.button("Add Topic", use_container_width=True) and new_topic:
+            if new_topic not in current_topics:
+                current_topics.append(new_topic)
+                policy.blocked_topics = current_topics
+                cp.update_policy(policy)
+                st.success(f"Added '{new_topic}' to guardrails.")
+                st.rerun()
+        
+        # List existing topics with remove button
+        for i, topic in enumerate(current_topics):
+            col_text, col_btn = st.columns([4, 1])
+            col_text.text(f"• {topic}")
+            if col_btn.button("Remove", key=f"rm_{i}"):
+                 current_topics.pop(i)
+                 policy.blocked_topics = current_topics
+                 cp.update_policy(policy)
+                 st.success(f"Removed '{topic}'")
+                 st.rerun()
+                 
+        st.divider()
+        
+        # 2. System Sensitivity
+        st.markdown("### 🎚️ Sensitivity Settings")
+        
+        threshold = st.slider(
+            "Semantic Guardrail Threshold",
+            min_value=0.0,
+            max_value=1.0,
+            value=policy.semantic_guardrail_threshold,
+            help="Lower = Stricter (Blocks more). Higher = More Lenient."
+        )
+        
+        if threshold != policy.semantic_guardrail_threshold:
+            policy.semantic_guardrail_threshold = threshold
             cp.update_policy(policy)
-            st.success(f"Added '{new_topic}' to guardrails.")
+            st.toast("Sensitivity updated!")
+            
+    with tab_prompts:
+        from src.agent.prompt_manager import get_prompt_manager
+        pm = get_prompt_manager()
+        
+        st.markdown("### 📝 System Prompt Editor")
+        st.caption("Edit the core instructions for the AI Agent. Changes apply immediately.")
+        
+        current_prompt = pm.get_system_prompt()
+        new_prompt = st.text_area("Analysis System Prompt", value=current_prompt, height=600)
+        
+        if st.button("💾 Save Prompt", use_container_width=True):
+            pm.update_system_prompt(new_prompt)
+            st.success("System prompt updated successfully!")
+            time.sleep(1)
             st.rerun()
-    
-    # List existing topics with remove button
-    for i, topic in enumerate(current_topics):
-        col_text, col_btn = st.columns([4, 1])
-        col_text.text(f"• {topic}")
-        if col_btn.button("Remove", key=f"rm_{i}"):
-             current_topics.pop(i)
-             policy.blocked_topics = current_topics
-             cp.update_policy(policy)
-             st.success(f"Removed '{topic}'")
-             st.rerun()
-             
-    st.divider()
-    
-    # 2. System Sensitivity
-    st.markdown("### 🎚️ Sensitivity Settings")
-    
-    threshold = st.slider(
-        "Semantic Guardrail Threshold",
-        min_value=0.0,
-        max_value=1.0,
-        value=policy.semantic_guardrail_threshold,
-        help="Lower = Stricter (Blocks more). Higher = More Lenient."
-    )
-    
-    if threshold != policy.semantic_guardrail_threshold:
-        policy.semantic_guardrail_threshold = threshold
-        cp.update_policy(policy)
-        st.toast("Sensitivity updated!")
         
     st.divider()
     
