@@ -79,9 +79,16 @@ class PolicyConfig:
     @classmethod
     def from_file(cls, path: str) -> "PolicyConfig":
         """Load policy from JSON file."""
+        if not Path(path).exists():
+             return cls()
         with open(path, 'r') as f:
             data = json.load(f)
         return cls(**data)
+    
+    def save_to_file(self, path: str) -> None:
+        """Save policy to JSON file."""
+        with open(path, 'w') as f:
+            json.dump(self.to_dict(), f, indent=4)
     
     def to_dict(self) -> dict:
         return {
@@ -98,6 +105,7 @@ class PolicyConfig:
             "max_cost_per_day_usd": self.max_cost_per_day_usd,
             "blocked_topics": self.blocked_topics,
             "enable_content_guardrails": self.enable_content_guardrails,
+            "semantic_guardrail_threshold": self.semantic_guardrail_threshold,
         }
 
 
@@ -535,13 +543,21 @@ class ControlPlane:
     """
     
     def __init__(self, policy: Optional[PolicyConfig] = None):
-        self._policy = policy or PolicyConfig()
+        # Load from file if exists, otherwise use default
+        self._policy_file = "config/policy.json"
+        
+        if policy:
+            self._policy = policy
+        elif Path(self._policy_file).exists():
+            self._policy = PolicyConfig.from_file(self._policy_file)
+        else:
+            self._policy = PolicyConfig()
+            
         self._kill_switch = KillSwitch()
         self._model_registry = ModelRegistry()
         self._agent_registry = AgentRegistry()
         self._permission_checker = PermissionChecker(self._policy)
         self._request_timestamps: List[float] = []
-        self._daily_cost: float = 0.0
         self._daily_cost: float = 0.0
         self._lock = Lock()
         
@@ -559,6 +575,20 @@ class ControlPlane:
         
         # Link kill switch to agent registry
         self._kill_switch.add_callback(self._on_kill_switch_change)
+
+    def update_policy(self, new_policy: PolicyConfig) -> None:
+        """Update and persist the control plane policy."""
+        with self._lock:
+            self._policy = new_policy
+            self._permission_checker = PermissionChecker(self._policy)
+            
+            # Clear embeddings cache to force reload on next check
+            self._blocked_topic_embeddings = None
+            
+            # Persist to disk
+            Path("config").mkdir(exist_ok=True)
+            self._policy.save_to_file(self._policy_file)
+            print(f"Policy updated and saved to {self._policy_file}")
     
     def _on_kill_switch_change(self, state: KillSwitchState) -> None:
         """Handle kill switch state changes."""

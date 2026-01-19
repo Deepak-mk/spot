@@ -311,6 +311,11 @@ def render_sidebar():
 
         # Admin Only Controls
         if role == "admin":
+            if st.button("🛡️ Control Plane", use_container_width=True):
+                st.session_state.show_control_plane = True
+                add_log("info", "Opened control plane")
+                st.rerun()
+
             if st.button("🧠 Rebuild AI Memory", use_container_width=True):
                 with st.status("Rebuilding Semantic Index...", expanded=True) as status:
                     st.write("Ingesting metadata...")
@@ -734,8 +739,71 @@ def process_query(query: str):
     st.rerun()
 
 
-def main():
-    """Main application."""
+
+def render_control_plane_ui():
+    """Render the Dynamic Control Plane (Admin Only)."""
+    st.markdown("## 🛡️ Dynamic Control Plane")
+    st.markdown("Configure guardrails and policies in real-time.")
+    
+    cp = get_control_plane()
+    policy = cp.policy
+    
+    # 1. Topic Guardrails
+    st.markdown("### 🚫 Blocked Topics")
+    st.info("Queries semantically related to these topics will be blocked.")
+    
+    # Create a dynamic list editor
+    current_topics = policy.blocked_topics
+    
+    # Add new topic
+    c1, c2 = st.columns([3, 1])
+    new_topic = c1.text_input("Add new topic to block")
+    if c2.button("Add Topic", use_container_width=True) and new_topic:
+        if new_topic not in current_topics:
+            current_topics.append(new_topic)
+            policy.blocked_topics = current_topics
+            cp.update_policy(policy)
+            st.success(f"Added '{new_topic}' to guardrails.")
+            st.rerun()
+    
+    # List existing topics with remove button
+    for i, topic in enumerate(current_topics):
+        col_text, col_btn = st.columns([4, 1])
+        col_text.text(f"• {topic}")
+        if col_btn.button("Remove", key=f"rm_{i}"):
+             current_topics.pop(i)
+             policy.blocked_topics = current_topics
+             cp.update_policy(policy)
+             st.success(f"Removed '{topic}'")
+             st.rerun()
+             
+    st.divider()
+    
+    # 2. System Sensitivity
+    st.markdown("### 🎚️ Sensitivity Settings")
+    
+    threshold = st.slider(
+        "Semantic Guardrail Threshold",
+        min_value=0.0,
+        max_value=1.0,
+        value=policy.semantic_guardrail_threshold,
+        help="Lower = Stricter (Blocks more). Higher = More Lenient."
+    )
+    
+    if threshold != policy.semantic_guardrail_threshold:
+        policy.semantic_guardrail_threshold = threshold
+        cp.update_policy(policy)
+        st.toast("Sensitivity updated!")
+        
+    st.divider()
+    
+    if st.button("← Back to Chat"):
+        st.session_state.show_control_plane = False
+        st.rerun()
+
+
+if __name__ == "__main__":
+    # Main Dispatcher
     initialize()
     load_data()
     
@@ -744,8 +812,11 @@ def main():
     
     render_sidebar()
     
+    # Routing
     if st.session_state.get("show_dashboard"):
         render_dashboard()
+    elif st.session_state.get("show_control_plane"):
+        render_control_plane_ui()
     else:
         col1, col2 = st.columns([2, 1])
         
@@ -754,7 +825,3 @@ def main():
         
         with col1:
             render_chat()
-
-
-if __name__ == "__main__":
-    main()
