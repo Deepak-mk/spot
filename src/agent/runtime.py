@@ -202,12 +202,17 @@ Generate a SQL query and provide a clear answer."""
                         self._cache.store(query, sql_query, sql_result, answer)
                         steps.append("💾 Saved result to Semantic Cache")
                         
+                    elif is_empty_result:
+                        # VALID 0-row result. Do not fallback to random charts.
+                        sql_result = result.to_dict()
+                        # Append note to answer
+                        answer += "\n\n**Note**: The query executed successfully but returned no data. Try broadening your search."
+                        
                     else:
-                        # SQL execution failed or returned no data - try fallback
+                        # SQL execution failed (Syntax Error) - try fallback
                         if not result.success:
                             print(f"SQL Error: {result.error}")
-                        elif is_empty_result:
-                            print(f"SQL Warning: Query returned 0 rows. Triggering fallback.")
+                            steps.append(f"⚠️ SQL Error, attempting fallback...")
                             
                         # Try a simple fallback query based on keywords
                         fallback_sql = self._get_fallback_sql(query)
