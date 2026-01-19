@@ -275,7 +275,7 @@ def render_chart(df, chart_type):
 def render_sidebar():
     """Render sidebar with controls."""
     with st.sidebar:
-        st.markdown("## 📊 Control Plane")
+        st.markdown("## 🟢 System Status")
         
         control_plane = get_control_plane()
         vs = get_vector_store()
@@ -311,9 +311,9 @@ def render_sidebar():
 
         # Admin Only Controls
         if role == "admin":
-            if st.button("🛡️ Control Plane", use_container_width=True):
+            if st.button("🛡️ Guardrails Manager", use_container_width=True):
                 st.session_state.show_control_plane = True
-                add_log("info", "Opened control plane")
+                add_log("info", "Opened guardrails manager")
                 st.rerun()
 
             if st.button("🧠 Rebuild AI Memory", use_container_width=True):
@@ -375,7 +375,7 @@ def render_observability_panel():
     st.divider()
     
     # 2. Control Plane Status
-    st.markdown("**🛡️ Control Plane**")
+    st.markdown("**🛡️ Governance & Health**")
     
     try:
         cp = get_control_plane()
@@ -742,8 +742,8 @@ def process_query(query: str):
 
 def render_control_plane_ui():
     """Render the Dynamic Control Plane (Admin Only)."""
-    st.markdown("## 🛡️ Dynamic Control Plane")
-    st.markdown("Configure guardrails and policies in real-time.")
+    st.markdown("## 🛡️ Guardrails & Policy")
+    st.markdown("Configure system governance and blocked topics.")
     
     cp = get_control_plane()
     policy = cp.policy
