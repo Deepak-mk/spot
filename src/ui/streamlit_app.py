@@ -785,7 +785,7 @@ def render_control_plane_ui():
     st.markdown("## 🛡️ Guardrails & Policy")
     st.markdown("Configure system governance and blocked topics.")
     
-    tab_guardrails, tab_prompts = st.tabs(["🛡️ Guardrails", "📝 Prompts"])
+    tab_guardrails, tab_prompts, tab_analytics = st.tabs(["🛡️ Guardrails", "📝 Prompts", "📊 Analytics"])
     
     with tab_guardrails:
         cp = get_control_plane()
@@ -853,6 +853,57 @@ def render_control_plane_ui():
             st.success("System prompt updated successfully!")
             time.sleep(1)
             st.rerun()
+
+    with tab_analytics:
+        st.markdown("### 📈 Performance Analytics")
+        try:
+            from pathlib import Path
+            import pandas as pd
+            import altair as alt
+            
+            data_file = Path("data/analytics_events.jsonl")
+            if data_file.exists():
+                df = pd.read_json(data_file, lines=True)
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                
+                # Summary metrics
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Total Requests", len(df))
+                c2.metric("Avg Latency", f"{df['duration_ms'].mean():.0f}ms")
+                c3.metric("Total Cost", f"${df['cost_usd'].sum():.4f}")
+                
+                # 1. Requests over time
+                chart_req = alt.Chart(df).mark_bar().encode(
+                    x=alt.X('timestamp:T', timeUnit='hours'),
+                    y='count()',
+                    color=alt.value("#3b82f6")
+                ).properties(title="Requests per Hour")
+                st.altair_chart(chart_req, use_container_width=True)
+                
+                # 2. Latency & Cost over time
+                c_lat, c_cost = st.columns(2)
+                
+                with c_lat:
+                    chart_lat = alt.Chart(df).mark_line().encode(
+                        x=alt.X('timestamp:T', timeUnit='hours'),
+                        y=alt.Y('mean(duration_ms)', title='Avg Latency (ms)'),
+                        color=alt.value("#f59e0b")
+                    ).properties(title="Average Latency Trend")
+                    st.altair_chart(chart_lat, use_container_width=True)
+                    
+                with c_cost:
+                    chart_cost = alt.Chart(df).mark_line().encode(
+                        x=alt.X('timestamp:T', timeUnit='hours'),
+                        y=alt.Y('sum(total_tokens)', title='Total Tokens'),
+                        color=alt.value("#10b981")
+                    ).properties(title="Token Usage Trend")
+                    st.altair_chart(chart_cost, use_container_width=True)
+                    
+            else:
+                st.info("No analytics data collected yet. Run some queries!")
+                
+        except Exception as e:
+            st.error(f"Failed to load analytics: {e}")
         
     st.divider()
     

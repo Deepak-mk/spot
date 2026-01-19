@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Manual - Agentic Analytics</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        h2 {
+            margin-top: 30px;
+            color: #34495e;
+        }
+
+        h3 {
+            color: #555;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        blockquote {
+            border-left: 4px solid #3498db;
+            margin: 0;
+            padding-left: 15px;
+            color: #666;
+            background: #f9f9f9;
+            padding: 10px;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+
+        ul,
+        ol {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="instructions no-print">
+        <h3>🖨️ How to Save as PDF</h3>
+        <ol>
+            <li>Press <b>Cmd + P</b> (or Ctrl + P).</li>
+            <li>Set Destination to <b>"Save as PDF"</b>.</li>
+            <li>Click Save.</li>
+        </ol>
+    </div>
+
+    <h1>📖 User Manual: Agentic Analytics Platform</h1>
+    <p><strong>Target Audience:</strong> End Users<br>
+        <strong>Purpose:</strong> Step-by-step guide to operating the platform.
+    </p>
+
+    <h2>1. Getting Started</h2>
+
+    <h3>1.1. Accessing the Application</h3>
+    <p>Open the provided Streamlit URL (or run locally via <code>streamlit run src/ui/streamlit_app.py</code>).</p>
+
+    <h3>1.2. Authentication (Login)</h3>
+    <p>You will see a secure login screen.</p>
+    <ul>
+        <li><strong>Username:</strong> <em>[Provided Separately]</em></li>
+        <li><strong>Password:</strong> <em>[Provided Separately]</em></li>
+    </ul>
+    <blockquote>Note: This mimics an Enterprise Single-Sign On (SSO) gate.</blockquote>
+
+    <h2>2. Navigating the Interface</h2>
+    <p>The application is divided into three zones:</p>
+
+    <h3>Zone A: The Sidebar (Control Plane)</h3>
+    <p>Located on the <strong>Left</strong>. This is your cockpit.</p>
+    <ul>
+        <li><strong>System Status:</strong> Shows 🟢 if healthy, 🔴 if Kill Switch is active.</li>
+        <li><strong>Documents:</strong> Shows how many semantic chunks are indexed (e.g., "48 Documents").</li>
+        <li><strong>Actions:</strong>
+            <ul>
+                <li><code>📊 Dashboard</code>: Opens a BI Dashboard view.</li>
+                <li><code>🗑️ Clear Chat</code>: Resets the conversation.</li>
+                <li><code>🧠 Rebuild AI Memory</code>: Forces a reload of the code/metadata changes.</li>
+                <li><code>🛑 Kill Switch</code>: <strong>Emergency Button</strong>. Instantly stops the agent.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>Zone B: The Chat Window (Center)</h3>
+    <p>This is where you interact with the agent.</p>
+    <ul>
+        <li>It comes pre-loaded with <strong>Suggested Questions</strong>.</li>
+        <li><strong>Input Box:</strong> Type your natural language query here.</li>
+    </ul>
+
+    <h3>Zone C: Deep Observability (Right)</h3>
+    <p>A live telemetry panel showing what's happening under the hood.</p>
+    <ul>
+        <li><strong>Est. Cost:</strong> Real-time tracking of token spend.</li>
+        <li><strong>Avg Latency:</strong> Performance metric.</li>
+        <li><strong>Live Logs:</strong> A scrolling feed of system events.</li>
+    </ul>
+
+    <h2>3. How to Use Features</h2>
+
+    <h3>3.1. Asking a Question</h3>
+    <ol>
+        <li>Type: <code>Show me the total revenue by region</code>.</li>
+        <li>Press <strong>Enter</strong>.</li>
+        <li><strong>Watch the "Thought Process"</strong>:
+            <ul>
+                <li>The agent will verify credentials.</li>
+                <li>It will search the vector database.</li>
+                <li>It will generate SQL.</li>
+            </ul>
+        </li>
+        <li><strong>View Results</strong>:
+            <ul>
+                <li>A <strong>Data Table</strong> will appear.</li>
+                <li>A <strong>Chart</strong> (Bar/Line/Pie) will automatically render.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>3.2. Inspecting the "AI Brain"</h3>
+    <ol>
+        <li>Look for the <strong>"🧠 Agent Thought Process"</strong> expander below the answer.</li>
+        <li><strong>Click to Expand</strong>.</li>
+        <li>You will see the exact steps:<br>
+            <em>Step 1: Checking Guardrails...</em><br>
+            <em>Step 2: Retrieving Context...</em><br>
+            <em>Step 3: Thinking...</em>
+        </li>
+    </ol>
+
+    <h3>3.3. Testing the Guardrails (The Shield)</h3>
+    <ol>
+        <li>Try to trick the agent: <code>Democrats vs Republicans</code>.</li>
+        <li><strong>Result:</strong> The agent will refuse. "Content Blocked".</li>
+        <li><strong>Why?:</strong> The <strong>Vector Guardrail</strong> detected a forbidden topic semantic match.</li>
+    </ol>
+
+    <h3>3.4. Using the Kill Switch</h3>
+    <ol>
+        <li>Click <strong>🛑 Kill Switch</strong> in the sidebar.</li>
+        <li>Try to ask <em>any</em> question.</li>
+        <li><strong>Result:</strong> "Blocked: Kill switch is ACTIVE".</li>
+    </ol>
+
+    <h2>4. Advanced Features</h2>
+
+    <h3>4.1. Synonym Recognition</h3>
+    <p>Try asking: <code>What are the total earnings?</code><br>
+        The system understands "Earnings" = "Revenue" automatically.</p>
+
+    <h3>4.2. Feedback Loop</h3>
+    <p>Clicking the 👍 / 👎 buttons logs your feedback for future fine-tuning.</p>
+
+    <h2>5. Troubleshooting</h2>
+    <ul>
+        <li><strong>"No API Key"</strong>: Ensure <code>.env</code> is configured.</li>
+        <li><strong>"0 Documents Found"</strong>: Click <strong>🧠 Rebuild AI Memory</strong> to re-index.</li>
+    </ul>
+
+</body>
+
+</html>
