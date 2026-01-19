@@ -4,7 +4,7 @@ import numpy as np
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass, field
 from pathlib import Path
-from src.agent.llm_client import get_embedding_model
+from src.retrieval.embeddings import get_embedding_model
 
 @dataclass
 class CacheEntry:
