@@ -8,8 +8,11 @@ class Settings(BaseSettings):
     """
     # LLM
     groq_api_key: str
+    # LLM
+    groq_api_key: str
     llm_model: str = "llama-3.1-8b-instant"
     llm_temperature: float = 0.1
+    embedding_model: str = "all-MiniLM-L6-v2"
     
     # Database
     database_url: str = "sqlite:///data/analytics.db"
@@ -38,5 +41,28 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
-    """Get cached settings instance."""
+    """
+    Get cached settings instance.
+    Automatically loads from Streamlit secrets if available.
+    """
+    import os
+    import streamlit as st
+    
+    # Try to load from Streamlit secrets if running in Streamlit
+    try:
+        if st.secrets:
+            # Inject streamlit secrets into os.environ for Pydantic to pick up
+            # This is safer than manually constructing Settings because Pydantic handles validation
+            for key, value in st.secrets.items():
+                if isinstance(value, str):
+                    os.environ[key.upper()] = value
+                elif isinstance(value, dict):
+                    # Handle nested secrets (e.g. [connections.snowflake])
+                    for subkey, subvalue in value.items():
+                        if isinstance(subvalue, str):
+                            os.environ[f"{key.upper()}_{subkey.upper()}"] = subvalue
+    except (FileNotFoundError, ImportError, AttributeError):
+        # Not running in Streamlit or no secrets found
+        pass
+        
     return Settings()
