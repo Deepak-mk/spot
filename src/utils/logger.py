@@ -170,8 +170,8 @@ def get_logger(name: str, log_level: Optional[str] = None,
     settings = get_settings()
     
     # Determine settings
-    level = getattr(logging, (log_level or settings.observability.log_level).upper())
-    fmt = log_format or settings.observability.log_format
+    level = getattr(logging, (log_level or settings.log_level).upper())
+    fmt = log_format or settings.log_format
     
     # Create logger
     logger = logging.getLogger(name)

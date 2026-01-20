@@ -128,7 +128,7 @@ class Tracer:
     
     def __init__(self, output_dir: Optional[str] = None):
         settings = get_settings()
-        self._output_dir = Path(output_dir or settings.observability.trace_output_dir)
+        self._output_dir = Path(output_dir or settings.trace_output_dir)
         self._output_dir.mkdir(parents=True, exist_ok=True)
         self._active_traces: Dict[str, Trace] = {}
         self._step_counters: Dict[str, int] = {}

@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_requests_per_minute: int = 60
     
+    # Observability
+    trace_output_dir: str = "traces"
+    cost_warning_threshold: float = 0.5
+    cost_error_threshold: float = 1.0
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
     # Monitoring
     sentry_dsn: Optional[str] = None
     datadog_api_key: Optional[str] = None
