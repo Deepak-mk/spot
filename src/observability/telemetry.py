@@ -86,7 +86,8 @@ class Telemetry:
         success: bool = True,
         response: Optional[str] = None,
         token_usage: Optional[Dict[str, int]] = None,
-        error_category: Optional[str] = None
+        error_category: Optional[str] = None,
+        username: Optional[str] = None
     ) -> Dict:
         """
         End tracking for a request.
@@ -128,7 +129,7 @@ class Telemetry:
         latency_records = self._latency_tracker.get_records_for_trace(trace_id)
         
         # PERSIST ANALYTICS EVENT
-        self._log_analytics_event(trace_id, success, trace.total_duration_ms if trace else 0, cost_usd, token_usage)
+        self._log_analytics_event(trace_id, success, trace.total_duration_ms if trace else 0, cost_usd, token_usage, username)
         
         return {
             "trace_id": trace_id,
@@ -140,7 +141,7 @@ class Telemetry:
             "event_count": len(trace.events) if trace else 0,
         }
 
-    def _log_analytics_event(self, trace_id, success, duration_ms, cost_usd, token_usage):
+    def _log_analytics_event(self, trace_id, success, duration_ms, cost_usd, token_usage, username=None):
         """Log event to JSONL file for analytics dashboard."""
         try:
             import json
@@ -154,7 +155,8 @@ class Telemetry:
                 "duration_ms": duration_ms,
                 "cost_usd": cost_usd or 0.0,
                 "total_tokens": token_usage.get("total_tokens", 0) if token_usage else 0,
-                "model": token_usage.get("model", "unknown") if token_usage else "unknown"
+                "model": token_usage.get("model", "unknown") if token_usage else "unknown",
+                "username": username or "guest"
             }
             
             file_path = Path("data/analytics_events.jsonl")

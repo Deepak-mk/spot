@@ -898,6 +898,89 @@ def render_control_plane_ui():
                         color=alt.value("#10b981")
                     ).properties(title="Token Usage Trend")
                     st.altair_chart(chart_cost, use_container_width=True)
+                
+                st.divider()
+                
+                # 3. PERCENTILE METRICS (P50/P90/P99)
+                st.markdown("#### 📊 Latency Distribution")
+                p50 = df['duration_ms'].quantile(0.50)
+                p90 = df['duration_ms'].quantile(0.90)
+                p99 = df['duration_ms'].quantile(0.99)
+                
+                c_p50, c_p90, c_p99 = st.columns(3)
+                c_p50.metric("P50 (Median)", f"{p50:.0f}ms")
+                c_p90.metric("P90", f"{p90:.0f}ms")
+                c_p99.metric("P99", f"{p99:.0f}ms")
+                
+                # Histogram of latency distribution
+                hist_chart = alt.Chart(df).mark_bar().encode(
+                    x=alt.X('duration_ms:Q', bin=alt.Bin(maxbins=30), title='Latency (ms)'),
+                    y=alt.Y('count()', title='Frequency'),
+                    color=alt.value("#8b5cf6")
+                ).properties(title="Latency Distribution", height=250)
+                st.altair_chart(hist_chart, use_container_width=True)
+                
+                st.divider()
+                
+                # 4. MODEL-BASED BREAKDOWN
+                st.markdown("#### 🤖 Breakdown by Model")
+                
+                if 'model' in df.columns:
+                    # Group by model
+                    model_stats = df.groupby('model').agg({
+                        'trace_id': 'count',
+                        'duration_ms': 'mean',
+                        'cost_usd': 'sum',
+                        'total_tokens': 'sum'
+                    }).reset_index()
+                    model_stats.columns = ['Model', 'Requests', 'Avg Latency (ms)', 'Total Cost ($)', 'Total Tokens']
+                    
+                    # Display table
+                    st.dataframe(model_stats.style.format({
+                        'Avg Latency (ms)': '{:.0f}',
+                        'Total Cost ($)': '${:.4f}',
+                        'Total Tokens': '{:.0f}'
+                    }), use_container_width=True)
+                    
+                    # Charts
+                    c_model_lat, c_model_cost = st.columns(2)
+                    
+                    with c_model_lat:
+                        model_lat_chart = alt.Chart(model_stats).mark_bar().encode(
+                            x=alt.X('Model:N'),
+                            y=alt.Y('Avg Latency (ms):Q'),
+                            color=alt.value("#f59e0b")
+                        ).properties(title="Avg Latency by Model", height=250)
+                        st.altair_chart(model_lat_chart, use_container_width=True)
+                    
+                    with c_model_cost:
+                        model_cost_chart = alt.Chart(model_stats).mark_bar().encode(
+                            x=alt.X('Model:N'),
+                            y=alt.Y('Total Cost ($):Q'),
+                            color=alt.value("#10b981")
+                        ).properties(title="Total Cost by Model", height=250)
+                        st.altair_chart(model_cost_chart, use_container_width=True)
+                else:
+                    st.info("Model data not available in analytics events.")
+                
+                st.divider()
+                
+                # 5. USER/SESSION BREAKDOWN
+                st.markdown("#### 👥 Top Users/Sessions")
+                
+                if 'username' in df.columns:
+                    user_stats = df.groupby('username').agg({
+                        'trace_id': 'count',
+                        'cost_usd': 'sum'
+                    }).reset_index()
+                    user_stats.columns = ['User', 'Requests', 'Total Cost ($)']
+                    user_stats = user_stats.sort_values('Requests', ascending=False).head(10)
+                    
+                    st.dataframe(user_stats.style.format({
+                        'Total Cost ($)': '${:.4f}'
+                    }), use_container_width=True)
+                else:
+                    st.info("User data not available in analytics events.")
                     
             else:
                 st.info("No analytics data collected yet. Run some queries!")
