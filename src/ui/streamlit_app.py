@@ -13,6 +13,19 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
+try:
+    import sentry_sdk
+    from src.utils.config import get_settings
+    settings = get_settings()
+    if settings.sentry_dsn:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.app_env,
+            traces_sample_rate=0.1
+        )
+except (ImportError, Exception):
+    pass
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
