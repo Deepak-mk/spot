@@ -7,9 +7,55 @@ import uuid
 import time
 import functools
 from datetime import datetime, timezone
+import logging
+import sys
+import contextvars
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Callable, Any, Optional, TypeVar, ParamSpec
 from dataclasses import dataclass
+
+# Request ID Context
+request_id_var = contextvars.ContextVar('request_id', default=None)
+
+def set_request_id(request_context_id: str):
+    """Set the current request ID in context."""
+    request_id_var.set(request_context_id)
+
+def get_request_id() -> Optional[str]:
+    """Get the current request ID from context."""
+    return request_id_var.get()
+
+class RequestIDFilter(logging.Filter):
+    """Add request ID to all log records."""
+    def filter(self, record):
+        record.request_id = get_request_id() or "system"
+        return True
+
+def setup_logging(level=logging.INFO):
+    """Configure structured logging for the application."""
+    # Create logs directory if not exists
+    import os
+    os.makedirs('logs', exist_ok=True)
+    
+    # Configure root logger
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - [%(request_id)s] - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler('logs/app.log')
+        ]
+    )
+    
+    # Add request ID filter to all handlers
+    for handler in logging.root.handlers:
+        handler.addFilter(RequestIDFilter())
+        
+def get_logger(name: str) -> logging.Logger:
+    """Get a logger instance with request ID support."""
+    return logging.getLogger(name)
+
 
 
 # Type hints for decorators

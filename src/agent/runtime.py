@@ -101,6 +101,11 @@ class AgentRuntime:
         Run the agent on a query.
         """
         trace_id = trace_id or generate_trace_id()
+        
+        # Set request context for logging
+        from src.utils.helpers import set_request_id
+        set_request_id(trace_id)
+        
         start_time = time.perf_counter()
         steps = []
         

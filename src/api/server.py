@@ -20,14 +20,30 @@ from src.observability.telemetry import get_telemetry
 from src.retrieval.ingest import ingest_semantic_data
 
 # Import routes
+# Import routes
 from src.api.routes.query import router as query_router
 from src.api.routes.health import router as health_router
 from src.api.routes.metrics import router as metrics_router
+
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+except ImportError:
+    sentry_sdk = None
 
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     settings = get_settings()
+    
+    # Initialize Sentry if DSN is provided
+    if settings.sentry_dsn and sentry_sdk:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.app_env,
+            traces_sample_rate=0.1,  # 10% of transactions
+            integrations=[FastApiIntegration()]
+        )
     
     app = FastAPI(
         title="Agentic Analytics Platform",
@@ -84,16 +100,18 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def startup_event():
         """Initialize platform on startup."""
+        from src.utils.helpers import get_logger
+        logger = get_logger("api.server")
         settings = get_settings()
         
         # Ingest semantic data
         try:
             result = ingest_semantic_data()
-            print(f"✓ Ingested {result.documents_ingested} documents in {result.total_time_ms:.2f}ms")
+            logger.info(f"Ingested {result.documents_ingested} documents in {result.total_time_ms:.2f}ms")
         except Exception as e:
-            print(f"⚠ Failed to ingest data: {e}")
+            logger.error(f"Failed to ingest data: {e}", exc_info=True)
         
-        print(f"✓ Platform started: {settings.app_name} v{settings.version}")
+        logger.info(f"Platform started: {settings.app_name} v{settings.version}")
     
     # Root endpoint
     @app.get("/")
