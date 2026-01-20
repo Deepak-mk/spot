@@ -52,7 +52,7 @@ class SemanticDataIngestor:
     ):
         settings = get_settings()
         self._vector_store = vector_store or get_vector_store()
-        self._data_dir = Path(data_dir or settings.data.semantic_data_dir)
+        self._data_dir = Path(data_dir or settings.semantic_data_dir)
         self._embedding_model = get_embedding_model()
         self._telemetry = get_telemetry()
     

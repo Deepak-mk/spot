@@ -75,7 +75,7 @@ class SQLExecutor:
     
     def __init__(self, data_dir: Optional[str] = None):
         settings = get_settings()
-        self._data_dir = Path(data_dir or settings.data.semantic_data_dir)
+        self._data_dir = Path(data_dir or settings.semantic_data_dir)
         self._conn = None
         self._initialized = False
     

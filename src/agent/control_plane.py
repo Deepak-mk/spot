@@ -571,7 +571,7 @@ class ControlPlane:
         # Register default model
         settings = get_settings()
         self._model_registry.register_model(
-            model_name=settings.llm.model_name,
+            model_name=settings.llm_model,
             version="default",
             set_active=True
         )
