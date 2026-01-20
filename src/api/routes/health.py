@@ -57,7 +57,7 @@ async def detailed_health() -> Dict[str, Any]:
         },
         "config": {
             "status": "healthy",
-            "llm_model": settings.llm.model_name,
+            "llm_model": settings.llm_model,
             "log_level": settings.observability.log_level,
         }
     }

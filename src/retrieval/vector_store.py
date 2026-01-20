@@ -51,7 +51,7 @@ class VectorStore:
     
     def __init__(self, persist_path: Optional[str] = None):
         settings = get_settings()
-        self._persist_path = Path(persist_path) if persist_path else Path(settings.data.vector_store_path)
+        self._persist_path = Path(persist_path) if persist_path else Path(settings.vector_store_path)
         self._persist_path.mkdir(parents=True, exist_ok=True)
         
         self._documents: Dict[str, Document] = {}

@@ -61,7 +61,7 @@ class SQLQueryTool:
     
     def __init__(self, data_dir: Optional[str] = None):
         settings = get_settings()
-        self._data_dir = Path(data_dir or settings.data.semantic_data_dir)
+        self._data_dir = Path(data_dir or settings.semantic_data_dir)
         self._tables_loaded = False
         self._dataframes: Dict[str, Any] = {}
     
@@ -159,7 +159,7 @@ class MetadataLookupTool:
     
     def __init__(self, metadata_path: Optional[str] = None):
         settings = get_settings()
-        data_dir = Path(settings.data.semantic_data_dir)
+        data_dir = Path(settings.semantic_data_dir)
         self._metadata_path = Path(metadata_path) if metadata_path else data_dir / "metadata.json"
         self._metadata: Optional[Dict] = None
     

@@ -109,7 +109,7 @@ class Telemetry:
             record = self._cost_tracker.record_usage(
                 prompt_tokens=token_usage.get("prompt_tokens", 0),
                 completion_tokens=token_usage.get("completion_tokens", 0),
-                model=token_usage.get("model", self._settings.llm.model_name),
+                model=token_usage.get("model", self._settings.llm_model),
                 trace_id=trace_id,
                 operation="total_request"
             )

@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.1
     embedding_model: str = "all-MiniLM-L6-v2"
     
+    embedding_model: str = "all-MiniLM-L6-v2"
+    
+    # Data Paths
+    semantic_data_dir: str = "data/semantic"
+    vector_store_path: str = "data/vector_store"
+    
     # Database
     database_url: str = "sqlite:///data/analytics.db"
     
