@@ -93,8 +93,8 @@ class CostTracker:
         self._total_cost: float = 0.0
         self._total_prompt_tokens: int = 0
         self._total_completion_tokens: int = 0
-        self._warning_threshold = settings.observability.cost_warning_threshold
-        self._error_threshold = settings.observability.cost_error_threshold
+        self._warning_threshold = settings.cost_warning_threshold
+        self._error_threshold = settings.cost_error_threshold
         self._alert_callbacks: List[callable] = []
     
     def get_pricing(self, model: str) -> Dict[str, float]:
@@ -220,7 +220,7 @@ class CostTracker:
     def export_json(self, filepath: Optional[str] = None) -> str:
         """Export cost records to JSON file."""
         settings = get_settings()
-        output_dir = Path(settings.observability.trace_output_dir)
+        output_dir = Path(settings.trace_output_dir)
         
         if filepath:
             path = Path(filepath)
