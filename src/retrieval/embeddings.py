@@ -31,7 +31,7 @@ class EmbeddingModel:
     
     def __init__(self, model_name: Optional[str] = None):
         settings = get_settings()
-        self._model_name = model_name or settings.data.embedding_model
+        self._model_name = model_name or settings.embedding_model
         self._model = None
         self._dimension: Optional[int] = None
         self._latency_tracker = get_latency_tracker()
