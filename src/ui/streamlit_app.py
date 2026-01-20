@@ -692,7 +692,7 @@ def process_query(query: str):
     
     with st.chat_message("assistant"):
         with st.spinner("Analyzing..."):
-            result = run_query(query, st.session_state.session_id)
+            result = run_query(query, st.session_state.session_id, username=st.session_state.get("user_role", "guest"))
         
         # Log similarity scores
         if getattr(result, 'retrieved_context', None):

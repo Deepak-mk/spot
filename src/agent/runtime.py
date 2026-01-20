@@ -94,7 +94,8 @@ class AgentRuntime:
         self,
         query: str,
         session_id: Optional[str] = None,
-        trace_id: Optional[str] = None
+        trace_id: Optional[str] = None,
+        username: Optional[str] = None
     ) -> AgentResponse:
         """
         Run the agent on a query.
@@ -120,7 +121,7 @@ class AgentRuntime:
                 elapsed = duration_ms(start_time)
                 
                 # Log telemetry
-                self._telemetry.end_request(trace_id=trace_id, success=True, response="CACHED_RESPONSE")
+                self._telemetry.end_request(trace_id=trace_id, success=True, response="CACHED_RESPONSE", username=username)
                 
                 return AgentResponse(
                     trace_id=trace_id,
@@ -245,7 +246,18 @@ Generate a SQL query and provide a clear answer."""
             elapsed = duration_ms(start_time)
             
             # End telemetry
-            self._telemetry.end_request(trace_id=trace_id, success=True, response=answer[:200])
+            self._telemetry.end_request(
+                trace_id=trace_id,
+                success=True,
+                response=answer[:200],
+                token_usage={
+                    "prompt_tokens": llm_response.prompt_tokens if 'llm_response' in locals() else 0,
+                    "completion_tokens": llm_response.completion_tokens if 'llm_response' in locals() else 0,
+                    "total_tokens": llm_response.total_tokens if 'llm_response' in locals() else 0,
+                    "model": llm_response.model if 'llm_response' in locals() else "unknown"
+                },
+                username=username
+            )
             
             return AgentResponse(
                 trace_id=trace_id,
@@ -256,7 +268,12 @@ Generate a SQL query and provide a clear answer."""
                 data_sources=[c.metadata.get("chunk_type", "unknown") for c in context_chunks],
                 retrieved_context=retrieved_context,
                 duration_ms=elapsed,
-                token_usage={"prompt_tokens": len(user_message) // 4, "completion_tokens": len(answer) // 4},
+                token_usage={
+                    "prompt_tokens": llm_response.prompt_tokens,
+                    "completion_tokens": llm_response.completion_tokens,
+                    "total_tokens": llm_response.total_tokens,
+                    "model": llm_response.model
+                },
                 success=True,
                 is_cached=False,
                 steps=steps
@@ -501,5 +518,5 @@ def get_agent_runtime() -> AgentRuntime:
     return _agent_runtime
 
 
-def run_query(query: str, session_id: Optional[str] = None) -> AgentResponse:
-    return get_agent_runtime().run(query, session_id)
+def run_query(query: str, session_id: Optional[str] = None, username: Optional[str] = None) -> AgentResponse:
+    return get_agent_runtime().run(query, session_id, username=username)
