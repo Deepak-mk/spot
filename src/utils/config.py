@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     
     # Data Paths
-    semantic_data_dir: str = "data/semantic"
+    semantic_data_dir: str = "src/data/semantic"
     vector_store_path: str = "data/vector_store"
     
     # Database
