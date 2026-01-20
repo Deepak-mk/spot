@@ -873,30 +873,54 @@ def render_control_plane_ui():
                 c3.metric("Total Cost", f"${df['cost_usd'].sum():.4f}")
                 
                 # 1. Requests over time
-                chart_req = alt.Chart(df).mark_bar().encode(
-                    x=alt.X('timestamp:T', timeUnit='hours'),
-                    y='count()',
-                    color=alt.value("#3b82f6")
-                ).properties(title="Requests per Hour")
+                # Use different aggregation based on data volume
+                if len(df) < 10:
+                    # For sparse data, show individual points
+                    chart_req = alt.Chart(df).mark_bar().encode(
+                        x=alt.X('timestamp:T', title='Time'),
+                        y='count()',
+                        color=alt.value("#3b82f6")
+                    ).properties(title="Requests Over Time")
+                else:
+                    # For more data, aggregate by hour
+                    chart_req = alt.Chart(df).mark_bar().encode(
+                        x=alt.X('timestamp:T', timeUnit='hours'),
+                        y='count()',
+                        color=alt.value("#3b82f6")
+                    ).properties(title="Requests per Hour")
                 st.altair_chart(chart_req, use_container_width=True)
                 
                 # 2. Latency & Cost over time
                 c_lat, c_cost = st.columns(2)
                 
                 with c_lat:
-                    chart_lat = alt.Chart(df).mark_line().encode(
-                        x=alt.X('timestamp:T', timeUnit='hours'),
-                        y=alt.Y('mean(duration_ms)', title='Avg Latency (ms)'),
-                        color=alt.value("#f59e0b")
-                    ).properties(title="Average Latency Trend")
+                    if len(df) < 10:
+                        chart_lat = alt.Chart(df).mark_line(point=True).encode(
+                            x=alt.X('timestamp:T', title='Time'),
+                            y=alt.Y('duration_ms:Q', title='Latency (ms)'),
+                            color=alt.value("#f59e0b")
+                        ).properties(title="Latency Over Time")
+                    else:
+                        chart_lat = alt.Chart(df).mark_line().encode(
+                            x=alt.X('timestamp:T', timeUnit='hours'),
+                            y=alt.Y('mean(duration_ms)', title='Avg Latency (ms)'),
+                            color=alt.value("#f59e0b")
+                        ).properties(title="Average Latency Trend")
                     st.altair_chart(chart_lat, use_container_width=True)
                     
                 with c_cost:
-                    chart_cost = alt.Chart(df).mark_line().encode(
-                        x=alt.X('timestamp:T', timeUnit='hours'),
-                        y=alt.Y('sum(total_tokens)', title='Total Tokens'),
-                        color=alt.value("#10b981")
-                    ).properties(title="Token Usage Trend")
+                    if len(df) < 10:
+                        chart_cost = alt.Chart(df).mark_line(point=True).encode(
+                            x=alt.X('timestamp:T', title='Time'),
+                            y=alt.Y('total_tokens:Q', title='Tokens'),
+                            color=alt.value("#10b981")
+                        ).properties(title="Token Usage Over Time")
+                    else:
+                        chart_cost = alt.Chart(df).mark_line().encode(
+                            x=alt.X('timestamp:T', timeUnit='hours'),
+                            y=alt.Y('sum(total_tokens)', title='Total Tokens'),
+                            color=alt.value("#10b981")
+                        ).properties(title="Token Usage Trend")
                     st.altair_chart(chart_cost, use_container_width=True)
                 
                 st.divider()
