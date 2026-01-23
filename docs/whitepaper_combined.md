@@ -31,7 +31,7 @@ We have built a system that acts as a **Virtual Data Analyst**.
 ## Value Proposition (ROI)
 *   **90% Faster Time-to-Insight**.
 *   **Zero Hallucinations** (due to Semantic Layer).
-*   **Enterprise Ready** (RBAC, Logging, CI/CD).
+*   **Enterprise Ready** (RBAC, Structured Logging, Health Checks).
 
 <div style="page-break-after: always;"></div>
 
@@ -135,6 +135,7 @@ We utilize **`sentence-transformers/all-MiniLM-L6-v2`** with a custom **Structur
 *   **Accuracy**: 100% (9/9 Tests Passed).
 *   **Safety**: 100% Block Rate on destructive SQL.
 *   **Latency**: ~1.2s avg.
+*   **Observability**: Full JSON Tracing + Sentry Monitoring.
 
 ---
 > **End of Report**

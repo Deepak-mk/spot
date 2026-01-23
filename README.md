@@ -26,6 +26,12 @@ We have prepared a complete documentation suite for your review:
 4.  **The Joystick (Control Plane)**: Real-time kill switch and budget caps ($10/day).
 5.  **Self-Correction**: Automatically fixes SQL syntax errors without user intervention.
 
+### 🛡️ Enterprise Edition (New)
+*   **Observability 2.0**: Full Sentry integration & JSON structured logging with trace IDs.
+*   **Production Hardened**: Pydantic-based configuration management (`.env` support).
+*   **Health Handling**: Kubernetes-ready `/health` endpoints and kill-switch logic.
+*   **Secure**: Secrets management fully decoupled from code.
+
 ---
 
 ## 🚀 Quick Start (One-Click Setup)
