@@ -228,7 +228,22 @@ We ran an automated test suite (`tests/run_suite.py`) of 8 canonical queries to 
 
 ---
 
-## 10. Future Roadmap
+## 11. Enterprise Hardening (New)
+
+We have transitioned from a prototype to a production-grade system.
+
+### 11.1. Observability 2.0
+*   **Structured Logging**: All logs are JSON-formatted with `request_id` context, enabling distributed tracing across microservices.
+*   **Error Monitoring**: Integrated **Sentry** SDK for real-time exception tracking and performance monitoring.
+*   **Health Checks**: Implemented `/health` and `/ready` endpoints compatible with Kubernetes Liveness/Readiness probes.
+
+### 11.2. Configuration Management
+*   **Pydantic Settings**: Replaced loose env vars with a strictly typed `Settings` class.
+*   **Security**: All secrets (API Keys, DSNs) are loaded exclusively from `.env` or Streamlit Secrets, never hardcoded.
+
+---
+
+## 12. Future Roadmap
 *   **LLM Agnosticism**: Abstract `GroqClient` to specific interfaces (OpenAI, Anthropic).
 *   **Enterprise Semantic Layer**: Native integration with dbt Semantic Layer.
 *   **Active Learning**: Automated regression testing on feedback examples.
