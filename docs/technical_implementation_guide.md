@@ -13,12 +13,14 @@
 2.  **The Brain (Ingestion)**: Tokenization, Structural Chunking & Semantic Layer.
 3.  **The Engine (RAG)**: Vector Math & Indexing Strategy.
 4.  **The Mind (Runtime)**: ReAct Loop, Memory & Feedback Loop.
-5.  **The Joystick (Governance)**: Control Plane & Boundaries.
-6.  **Defense in Depth (Guardrails)**: Operational vs Content Safety.
-7.  **War Stories**: Failures, Hallucinations, & Fixes.
-8.  **The Interface**: Visualization Principles & Observability.
-9.  **System Evaluation**: Quantitative Accuracy & Safety Metrics.
-10. **Future Roadmap**: What's Next.
+5.  **The Joystick (Governance)**: Universal Control Plane & Boundaries.
+6.  **Prompt Engineering**: Dynamic Prompt Management (PromptManager).
+7.  **Defense in Depth (Guardrails)**: Operational vs Content Safety.
+8.  **Observability 2.0**: Telemetry, JSON Traces, & Error Monitoring.
+9.  **War Stories**: Failures, Hallucinations, & Fixes.
+10. **The Interface**: Visualization Principles & UX.
+11. **System Evaluation**: Quantitative Accuracy & Safety Metrics.
+12. **Future Roadmap**: MLflow Integration & Active Learning.
 
 ---
 
@@ -107,30 +109,19 @@ We exposed the agent's internal monologue to the user to build trust.
 
 **Metaphor**: Think of the Control Plane (`src/agent/control_plane.py`) as a **Joystick** that operates the whole agent. It ensures the pilot has full control and the agent never flies beyond its designated boundaries.
 
-### 5.1. The Joystick Mechanism
-This is not a passive logging system; it is an active, real-time feedback loop. Every action the agent attempts is routed through the Control Plane, which validates it against safety protocols before execution.
+### 5.1. The Hot-Reloadable Control Plane
+Every action attempt is routed through the Control Plane (`src/agent/control_plane.py`). Unlike static guardrails, our system is **Hot-Reloadable**: admins can update blocked topics or budget limits via the UI, and the backend refreshes the configuration in-memory instantly.
 
-*   **Joystick Inputs**: The system constantly monitors key pressure points:
-    *   **Budget Pressure**: Are we burning tokens too fast?
-    *   **Safety Pressure**: Is the manual "Stop" button pressed?
-    *   **Policy Pressure**: Is the agent trying to run a forbidden command?
+---
 
-### 5.2. Defining the Boundaries
-We set hard boundaries to ensure the agent operates strictly within safe limits:
+## 6. Prompt Engineering: Dynamic Management
 
-1.  **The Emergency Brake (Kill Switch)**
-    *   *Function*: Instantly halts all agent operations.
-    *   *Trigger*: Can be **Manual** (via the UI Joystick button) or **Automatic** (when cost limits are hit).
-    *   *Result*: The "Joystick" locks the controls immediately.
+**File**: `src/agent/prompt_manager.py`
 
-2.  **The Fuel Limit (Cost Budget)**
-    *   *Boundary*: **$10.00 / day** (Configurable).
-    *   *Mechanism*: Real-time token counting -> Cost Calculation.
-    *   *Action*: If `daily_cost > limit`, the joystick automatically pulls back and enables the Kill Switch.
-
-3.  **The Fight Zone (Permission Policy)**
-    *   *Boundary*: **Read-Only Access**.
-    *   *Mechanism*: A Regex-based "Geofence" that blocks `DROP`, `DELETE`, `INSERT`, or `UPDATE` commands. The agent is physically incapable of modifying the database.
+Hardcoding prompts is an enterprise anti-pattern. We implemented a dedicated **Prompt Manager**:
+*   **Decoupled Logic**: System instructions are stored as `yaml` files.
+*   **UI-Driven Engineering**: Data scientists can tweak the agent's persona and reasoning instructions directly in the Streamlit Admin UI without a code deploy.
+*   **Version Context**: The `PromptManager` can serve different prompts based on the model version (e.g., Llama-3 vs Claude).
 
 ---
 
@@ -228,18 +219,19 @@ We ran an automated test suite (`tests/run_suite.py`) of 8 canonical queries to 
 
 ---
 
-## 11. Enterprise Hardening (New)
+## 11. Observability 2.0: Total Traceability
 
-We have transitioned from a prototype to a production-grade system.
+We transitioned from passive logging to a three-tier observability stack:
 
-### 11.1. Observability 2.0
-*   **Structured Logging**: All logs are JSON-formatted with `request_id` context, enabling distributed tracing across microservices.
-*   **Error Monitoring**: Integrated **Sentry** SDK for real-time exception tracking and performance monitoring.
-*   **Health Checks**: Implemented `/health` and `/ready` endpoints compatible with Kubernetes Liveness/Readiness probes.
+1.  **The Hot Path (Telemetry)**: Real-time latency, cost, and heartbeat monitoring via `telemetry.py`.
+2.  **The Warm Path (JSON Tracing)**: Detailed step-by-step agent decisions stored in `traces/` for auditing and debug session replays.
+3.  **The Cold Path (Monitoring)**: 
+    *   **Sentry SDK**: Captures uncaught exceptions and performance bottlenecks in production.
+    *   **MLflow (Roadmap)**: Planned integration for historical drift detection and model/prompt evaluation side-by-side.
 
-### 11.2. Configuration Management
-*   **Pydantic Settings**: Replaced loose env vars with a strictly typed `Settings` class.
-*   **Security**: All secrets (API Keys, DSNs) are loaded exclusively from `.env` or Streamlit Secrets, never hardcoded.
+### 11.1. Health & Resilience
+*   **Pydantic Settings**: Strictly typed configuration prevents startup crashes due to missing env vars.
+*   **Health Endpoints**: `/health` compatible with Kubernetes Liveness probes.
 
 ---
 

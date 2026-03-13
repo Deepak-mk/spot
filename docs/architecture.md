@@ -1,17 +1,21 @@
-# 🏗️ System Architecture: Agentic Analytics Platform
+# 🏗️ System Architecture: Enterprise Agentic Decision System
 
-> **Status**: Production Ready
-> **Version**: 1.0.0
-> **Last Updated**: January 2026
+> **Status**: Production Ready (AWS-Compatible)
+> **Version**: 3.0.0
+> **Last Updated**: March 2026
 
-## 1. High-Level Overview
+## 1. High-Level Philosophy: "Architecture Over Orchestration"
 
-The Agentic Analytics Platform is a **Retrieval-Augmented Generation (RAG)** system designed to execute analytical tasks autonomously. Unlike passive chatbots, it implements a **ReAct (Reasoning + Acting) Loop** that allows it to plan, retrieve context, generate SQL, execute it, and check the results before responding.
+The platform is designed not as a simple chatbot, but as a **Governed Decision-Making System**. It solves the "Autonomy-Trust Gap" by implementing a strict separation between the **Data Plane** (where the agent reasons) and the **Control Plane** (where governance and safety are enforced).
 
-### Core Philosophy
-*   **Safety First**: No action is taken without passing through the **Control Plane**.
-*   **Semantic Precision**: The agent never guesses schema; it retrieves strict definitions from the **Semantic Layer**.
-*   **Deep Observability**: Every "thought" and "action" is traced and visible to the user.
+### The Six-Layer Agentic Runtime
+We implement a modular runtime architecture as described in our core design principles:
+1.  **Perception Layer**: Ingests natural language and maps to semantic intent.
+2.  **Memory Layer**: Distinguishes between **Knowledge** (RAG), **Context** (CAG), and **Rules** (KAG).
+3.  **Planning Layer**: Tactical reasoning via the ReAct (Reasoning + Acting) loop.
+4.  **Action Layer**: Secure interface for tool execution and data retrieval.
+5.  **Control Plane**: The external "Joystick" for real-time governance and policy enforcement.
+6.  **Governance Layer**: Persistent safety protocols, budget limits, and auditability.
 
 ---
 
@@ -19,89 +23,76 @@ The Agentic Analytics Platform is a **Retrieval-Augmented Generation (RAG)** sys
 
 ```mermaid
 graph TD
-    User[User / Interview Panel] --> UI[Streamlit UI]
-    UI --> Auth[Auth Gate]
-    Auth --> Runtime[Agent Runtime]
-    
-    subgraph "The Brain (Agent Core)"
-        Runtime --> Control[Control Plane / Governance]
+    User([Business Analyst]) --> UI[Streamlit Decision Portal]
+    UI --> Manager[Governance Manager]
+    Manager -- Hot-Reload --> Config[Policy & Prompt Store]
+
+    subgraph "Universal Control Plane (Layer 5 & 6)"
+        CP[Gatekeeper Service]
+        CP --> PM[Prompt Manager]
+        CP --> KS[Kill Switch & Budget]
+        CP --> Shield[Semantic Vector Shield]
+    end
+
+    UI --> CP
+    CP --> Runtime[Agentic Runtime]
+
+    subgraph "The Data Plane (Layer 2 & 3)"
         Runtime --> Planner[ReAct Planner]
-        Runtime --> Context[Context Manager]
+        Runtime --> RAG[Semantic Retrieval Engine]
+        RAG --> Meta[Metadata Graph]
+        Runtime --> Cache[Semantic Semantic Cache]
     end
-    
-    subgraph "The Knowledge (Semantic Layer)"
-        Runtime --> RAG[Vector Store (FAISS)]
-        RAG --> Embed[Embedding Model (MiniLM)]
-        RAG --> Meta[Metadata Store (JSON)]
+
+    subgraph "Action Layer (Layer 4)"
+        Runtime --> SQL[SQL Execution Engine]
+        SQL --> Data[Analytical Data Store]
     end
-    
-    subgraph "The Engine (Execution)"
-        Runtime --> LLM[LLM Client (Groq/Llama-3)]
-        Runtime --> SQL[SQL Executor]
-        SQL --> Data[Fact & Dim Tables]
+
+    subgraph "Observability & Lifecycle"
+        Runtime --> Trace[Decision Tracing]
+        Trace --> Sentry[Production Error Monitoring]
+        Trace --> Eval[Evaluation & Judgment Metrics]
     end
-    
-    Control -.->|Blocks| Runtime
-    SQL -.->|Results| Runtime
+
+    CP -.->|Blocks/Gates| Runtime
 ```
 
-### 2.1. Frontend Layer (`src/ui`)
-*   **Technology**: Streamlit.
-*   **Responsibility**: Chat interface, Visualization rendering (Altair), Auth handling, and Observability Panel.
-*   **Key Feature**: "Thought Trace" Expander (`st.expander`) that visualizes the ReAct tokens.
+---
 
-### 2.2. Agent Runtime Layer (`src/agent`)
-*   **Technology**: Python 3.10+, AsyncIO.
-*   **Responsibility**: Orchestrates the Step-by-Step execution.
-*   **State Management**: Holds `ConversationMemory` and injects `DataSignature` (schema of previous results) into the context window.
+## 3. Operational Layers
 
-### 2.3. Control Plane (`src/agent/control_plane.py`)
-*   **Responsibility**: The "Joystick" of the system.
-*   **Functions**:
-    *   **Budget Check**: Enforces $10/day limit.
-    *   **Kill Switch**: Emergency stop mechanism.
-    *   **Policy Check**: Regex & Vector-based guardrails.
+### 3.1. The Memory Framework (Layer 2)
+Unlike standard RAG, we utilize a **Multi-Tier Memory** architecture:
+*   **Knowledge (RAG)**: Static schema definitions and business rules embedded in FAISS.
+*   **Context (CAG)**: Pre-computed "Data Signatures" of previous hits to enable multi-turn comparative analysis.
+*   **Logic (KAG)**: DynamicFew-Shot examples injected based on human feedback (👍/👎).
 
-### 2.4. Semantic Retrieval Layer (`src/retrieval`)
-*   **Technology**: FAISS (Vector DB), Sentence-Transformers.
-*   **Responsibility**: Maps "Business Terms" (e.g., "Earnings") to "Technical Columns" (e.g., `revenue`).
-*   **Innovation**: Uses **Structure-Aware Chunking** to preserve table/column relationships.
+### 3.2. Universal Control Plane (Layer 5)
+The Control Plane acts as the **Geofence** for the agent. It is physically isolated from the LLM's reasoning loop to prevent prompt injection from bypassing safety filters.
+*   **Semantic Shield**: Cosine-similarity check against forbidden concepts.
+*   **Hot-Reloadable Policy**: Update business rules at runtime via the Governance Manager.
 
 ---
 
-## 3. Data Flow (The "Thinking" Process)
+## 4. The Decision Flow
 
-1.  **Ingest**: User asks "Show revenue by region".
-2.  **Guard**: Logic checks for Kill Switch or Blocked Topics (e.g., "Politics").
-3.  **Retrieve**: Vector Engine matches "revenue" -> `fact_sales.revenue`, "region" -> `dim_store.region`.
-4.  **Plan**: LLM generates SQL: `SELECT region, SUM(revenue)...`.
-5.  **Execute**: System runs SQL on the dataframe/database.
-6.  **Verify**: System checks if SQL returned rows. If 0 rows or error, it self-corrects.
-7.  **Respond**: System formats the answer and renders the chart in UI.
-
----
-
-## 4. Security & Governance
-
-### 4.1. Authentication
-*   **Mechanism**: Role-Based Access Control (RBAC) via `st.session_state`.
-*   **Credentials**: Securely managed via `.env` (Local) or `st.secrets` (Cloud).
-
-### 4.2. Guardrails ("Defense in Depth")
-| Layer | Type | Mechanism | Feature |
-| :--- | :--- | :--- | :--- |
-| **L1** | Operational | **Kill Switch** | Blocks all execution instantly. |
-| **L2** | Content | **Vector Shield** | Blocks semantic violations (e.g. "Hate Speech" without keywords). |
-| **L3** | Functional | **Read-Only SQL** | Regex blocks `DROP`, `DELETE`, `INSERT`. |
+1.  **Perceive**: Ingest NL query -> Control Plane check.
+2.  **Reason**: Planner identifies needed metrics vs available schema.
+3.  **Retrieve**: Semantic match "Earnings" -> `SUM(revenue)`.
+4.  **Act**: Generate & Execute valid OLAP SQL.
+5.  **Observe**: Self-correct if results are anomalous or empty.
+6.  **Learn**: Persist feedback for future prompt optimization.
 
 ---
 
-## 5. Technology Stack
+## 5. Technology Stack (AWS Ready)
 
-*   **Language**: Python 3.10
-*   **Frontend**: Streamlit
-*   **LLM Provider**: Groq (Llama-3.1-8b-Instant)
-*   **Embeddings**: HuggingFace (`all-MiniLM-L6-v2`)
-*   **Vector Store**: FAISS (Local Persistence)
-*   **Data Processing**: Pandas / DuckDB
-*   **Diagramming**: Mermaid.js, Altair
+*   **Runtime**: Python 3.10 / AsyncIO
+*   **App Engine**: Streamlit (Bespoke Portal)
+*   **Intelligence**: Groq/Bedrock compatible LLM interfaces
+*   **Embeddings**: Sentence-Transformers (Local/AWS Titan compatible)
+*   **Vector Infrastructure**: FAISS (High-speed local/S3 persistence)
+*   **Data Lakehouse**: DuckDB / Apache Parquet / AWS Redshift compatible
+*   **Observability**: OpenTelemetry / JSON Structured Tracing
+
