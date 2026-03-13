@@ -4,7 +4,7 @@
 > **Format**: Technical Presentation / Whitepaper
 
 ---
-> **Related Docs**: [System Architecture](architecture.md) | [User Manual](user_manual.md) | [Proposal](project_proposal.md)
+> **Related Docs**: [System Architecture](architecture.md) | [User Manual](user_manual.md) | [Proposal](proposal_aws.md)
 
 ---
 
@@ -215,7 +215,7 @@ We ran an automated test suite (`tests/run_suite.py`) of 8 canonical queries to 
 | **Synonym** | "Total Earnings?" | ✅ **PASSED** | "Earnings" mapped to "Revenue" by Semantic Layer. |
 | **UX** | "Pie chart by region" | ✅ **PASSED** | Correctly triggered Visualization Engine. |
 
-> *Full results available in `docs/evaluation_scorecard.md`.*
+> *Full results available in the [AWS Proposal](proposal_aws.md).*
 
 ---
 

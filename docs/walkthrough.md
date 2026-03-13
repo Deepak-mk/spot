@@ -12,14 +12,11 @@
     - **Accuracy**: **87.5%** (Self-Corrected on SQL Syntax Errors).
     - **Safety**: **100%** Block Rate on `DROP`/`DELETE`.
     - **Speed**: **~400ms** P95 Latency.
-- **Artifact**: `docs/evaluation_scorecard.md`.
+- **Verification**: Verified against canonical test suite (Results summarized in [Proposal](proposal_aws.md)).
 
 ## 3. Interview Enablement ("The Director Pitch")
 - **Visuals**: Added **Emergency Kill Switch** buttons directly to the UI for a dramatic "Control Plane" demo.
-- **Knowledge**: Created `docs/mock_interview_qa.md` covering:
-    - **System Design**: Backend Concurrency, GIL, Isolation Levels.
-    - **Strategy**: Spotter vs. Mahilo (Control vs. Orchestration).
-    - **Leadership**: People Management & Tech Debt.
+- **Knowledge**: Core architecture principles aligned with the "Six-Layer Runtime" (Observability, Governance, Perception).
 
 ## 4. Platform Enhancements
 - **Deep Observability**: Live tracing of estimated costs and latency.

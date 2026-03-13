@@ -10,11 +10,11 @@ We have prepared a complete documentation suite for your review:
 
 | Document | Audience | Description |
 | :--- | :--- | :--- |
-| **[📄 Project Proposal](docs/project_proposal.md)** | **Product/Exec** | Executive summary, Problem/Solution, ROI, and Roadmap. |
-| **[🏗️ System Architecture](docs/architecture.md)** | **Architects** | Component diagrams, Data Flow, and Tech Stack. |
-| **[📖 User Manual](docs/user_manual.md)** | **End Users** | Step-by-step guide to using the Chat & Observability features. |
-| **[⚙️ Technical Deep Dive](docs/technical_implementation_guide.md)** | **Engineers** | Detailed breakdown of the RAG pipeline, Guardrails, and "War Stories". |
-| **[📊 Evaluation Scorecard](docs/custom_evaluation_scorecard.md)** | **QA/Trust** | Automated test results proving 100% accuracy and safety. |
+| **[🚀 AWS Proposal](docs/proposal_aws.md)** | **Exec/Product** | Bespoke pitch for AWS: "Governed Autonomy". |
+| **[🏗️ System Architecture](docs/architecture.md)** | **Architects** | Six-Layer Agentic Runtime and Control Plane design. |
+| **[📄 The Whitepaper](docs/whitepaper_combined.md)** | **Technical** | Comprehensive report on Decision Systems & RAG. |
+| **[⚙️ Implementation Guide](docs/technical_implementation_guide.md)** | **Engineers** | Deep dive into self-healing loops and guardrails. |
+| **[📖 User Manual](docs/user_manual.md)** | **End Users** | Guide to the Decision Portal & Observability Panel. |
 
 ---
 
